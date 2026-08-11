@@ -14,6 +14,7 @@ import com.rogue.scorequest.domain.usecase.UpdateGameSessionUseCase
 import com.rogue.scorequest.presentation.navigation.Routes
 import com.rogue.scorequest.presentation.viewmodel.states.AddSessionState
 import com.rogue.scorequest.presentation.viewmodel.states.ScoreEntryInput
+import com.rogue.scorequest.utils.ImageStorage
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,6 +57,7 @@ class AddSessionViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private var originalCreatedAt: LocalDateTime = LocalDateTime.now()
+    private var originalPhotoPath: String? = null
 
     init {
         if (isEditMode) {
@@ -63,6 +65,7 @@ class AddSessionViewModel(
                 getSessionDetailUseCase(sessionId).collect { detail ->
                     if (detail != null) {
                         originalCreatedAt = detail.session.createdAt
+                        originalPhotoPath = detail.session.photoUri
                         _state.value = _state.value.copy(
                             isLoading = false,
                             selectedGameId = detail.session.gameId,
@@ -123,6 +126,10 @@ class AddSessionViewModel(
     }
 
     fun onPhotoCaptured(path: String) {
+        val pendingPath = _state.value.photoPath
+        if (pendingPath != null && pendingPath != originalPhotoPath) {
+            ImageStorage.deleteImage(pendingPath)
+        }
         _state.value = _state.value.copy(photoPath = path)
     }
 
@@ -179,6 +186,9 @@ class AddSessionViewModel(
                     createdAt = originalCreatedAt,
                     scores = scoreInputs
                 )
+                if (originalPhotoPath != null && originalPhotoPath != current.photoPath) {
+                    ImageStorage.deleteImage(originalPhotoPath)
+                }
             } else {
                 saveGameSessionUseCase(
                     gameId = gameId,

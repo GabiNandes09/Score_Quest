@@ -44,7 +44,7 @@ data/
     database/    — AppDatabase (7 entidades, version = 1)
     entity/      — @Entity + projeções @Relation (GameWithLibraryEntryEntity, SessionWithScoresEntity) + Converters (enum <-> String)
     ThemePreferences.kt — DataStore, flag de tema escuro/claro
-  repository/    — um repository por agregado: BoardGameRepository, PlayerRepository, GameSessionRepository, ProfileRepository
+  repository/    — um repository por agregado: BoardGameRepository, PlayerRepository, GameSessionRepository, ProfileRepository (`BoardGameRepository.deleteGame()` existe mas **não é usada em lugar nenhum** — não há tela/usecase de "excluir jogo" no V1, só edição; ver seção 8 do doc de produto e "O que NÃO existe ainda" abaixo)
 domain/
   model/         — modelos de domínio (implementam Auditable: createdAt/updatedAt/deletedAt) + agregados de leitura (GameWithLibraryInfo, SessionWithDetails, HomeStats, GameStats, GameLastPlayed, StreakInfo)
   usecase/       — uma classe por operação (mesmo padrão do ShopControl — não agrupar em usecases genéricos), ~30 usecases
@@ -65,6 +65,7 @@ utils/           — DateTimeExt (epoch<->LocalDateTime, toRelativeDayString), F
 - Um Koin `viewModel { }` por tela; telas com parâmetro de rota (gameId, sessionId) usam `koinViewModel(parameters = { parametersOf(...) })`. O wizard de partida usa uma técnica diferente: ViewModel **escopado ao nested nav graph** (`koinViewModel(viewModelStoreOwner = navController.getBackStackEntry(graphRoute))`), compartilhado pelas 5 etapas — ver `wizardViewModel()` em `AppNavigation.kt`.
 - Sentinelas de rota (`"new"` para sessão/jogo novo, `"none"` para "sem jogo pré-selecionado") em vez de argumentos nullable do Navigation Compose — mais simples de tipar e de tratar no `NavType.StringType`.
 - Auto-avanço de etapa de wizard (usado para pular a escolha de jogo quando já vem pré-selecionado) é implementado como um flag **consumível uma única vez** no ViewModel (`consumeAutoAdvance()`), não um efeito colateral direto na navegação — isso evita que o usuário fique "preso" ao voltar (back) para aquela etapa.
+- **Limpeza de imagens locais órfãs** (seção 8 do doc de produto): `ImageStorage.deleteImage(path)` já existia mas não era chamada em lugar nenhum — capa de jogo, avatar e foto de partida vazavam arquivo toda vez que o usuário trocava a imagem antes de salvar. Cada um dos 3 ViewModels que capturam imagem (`AddEditGameViewModel`, `EditProfileViewModel`, `AddSessionViewModel`) agora guarda o path original carregado do banco (`original*Path`) e aplica duas limpezas: (1) no callback `onXCaptured`, se já havia um path pendente **diferente do original** (ou seja, uma captura anterior desta mesma sessão de edição, nunca persistida), apaga na hora — seguro porque nada no banco aponta pra ele; (2) em `save()`, só depois do update ter sucesso, se o path original for diferente do final, apaga o original — **nunca apaga o original antes de confirmar o save**, senão cancelar a edição deixaria o banco apontando pra um arquivo já excluído.
 
 ## ⚠️ Bug de layout já corrigido (Compose) — cuidado ao reintroduzir
 
@@ -98,7 +99,7 @@ Paleta da seção 1 do documento de produto: fundo `#121212`/superfície `#1E1E1
 
 - **Sempre rodar `./gradlew compileDebugKotlin` após qualquer alteração de código**, sem esperar o usuário pedir. Se mexer em dependências/versões do Kotlin, rodar limpo (`./gradlew clean compileDebugKotlin`) por causa do bug de compilador documentado acima.
 - `local.properties` aponta pro mesmo SDK do ShopControl (`sdk.dir=...\Android\Sdk`) — já configurado, não versionado (`.gitignore`).
-- Não há emulador Android disponível neste ambiente de desenvolvimento — a verificação é só compilação (`compileDebugKotlin` / `assembleDebug`), sem rodar a UI de fato. Mudanças visuais (layout, animações, cores) não foram testadas num device/emulador real nesta sessão.
+- Não há emulador Android disponível neste ambiente de desenvolvimento, mas o usuário costuma ter um **device físico conectado via `adb`** (`adb devices -l`) — quando houver um listado, rodar `./gradlew installDebug` após o `assembleDebug` bem-sucedido para instalar a build mais recente nele. Sem device conectado, a verificação fica só na compilação.
 - Builds costumam levar 10-30s incrementais; a primeira após mudar `libs.versions.toml` pode levar 1-3 min e ocasionalmente precisa de uma segunda tentativa (cache de configuração invalidado gera um "Unresolved reference 'R'" transitório na primeira tentativa — rodar de novo resolve).
 
 ## O que NÃO existe ainda (V1 propositalmente incompleto)

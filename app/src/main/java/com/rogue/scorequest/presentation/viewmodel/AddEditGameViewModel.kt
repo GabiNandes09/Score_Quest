@@ -8,6 +8,7 @@ import com.rogue.scorequest.domain.usecase.GetGameDetailUseCase
 import com.rogue.scorequest.domain.usecase.UpdateUserGameUseCase
 import com.rogue.scorequest.presentation.navigation.Routes
 import com.rogue.scorequest.presentation.viewmodel.states.AddEditGameState
+import com.rogue.scorequest.utils.ImageStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -25,11 +26,14 @@ class AddEditGameViewModel(
     private val _state = MutableStateFlow(AddEditGameState(isEditMode = isEditMode, isLoading = isEditMode))
     val state = _state.asStateFlow()
 
+    private var originalCoverImagePath: String? = null
+
     init {
         if (isEditMode) {
             viewModelScope.launch {
                 getGameDetail(gameId).collect { detail ->
                     if (detail != null) {
+                        originalCoverImagePath = detail.game.coverImageUrl
                         _state.update {
                             it.copy(
                                 isLoading = false,
@@ -54,7 +58,13 @@ class AddEditGameViewModel(
     fun onDurationChange(value: String) = _state.update { it.copy(avgDurationMinutes = value) }
     fun onCategoryChange(value: String) = _state.update { it.copy(category = value) }
     fun onWeightChange(value: String) = _state.update { it.copy(weight = value) }
-    fun onCoverCaptured(path: String) = _state.update { it.copy(coverImagePath = path) }
+    fun onCoverCaptured(path: String) {
+        val pendingPath = _state.value.coverImagePath
+        if (pendingPath != null && pendingPath != originalCoverImagePath) {
+            ImageStorage.deleteImage(pendingPath)
+        }
+        _state.update { it.copy(coverImagePath = path) }
+    }
     fun onStatusSelected(status: LibraryStatus) = _state.update { it.copy(status = status) }
 
     fun save() {
@@ -74,6 +84,9 @@ class AddEditGameViewModel(
                     weight = current.weight.toDoubleOrNull(),
                     coverImageUrl = current.coverImagePath
                 )
+                if (originalCoverImagePath != null && originalCoverImagePath != current.coverImagePath) {
+                    ImageStorage.deleteImage(originalCoverImagePath)
+                }
             } else {
                 addUserGame(
                     name = current.name.trim(),
