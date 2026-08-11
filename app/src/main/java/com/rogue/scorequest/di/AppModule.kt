@@ -30,6 +30,7 @@ import com.rogue.scorequest.domain.usecase.GetSessionsForGameUseCase
 import com.rogue.scorequest.domain.usecase.GetSessionsPagedUseCase
 import com.rogue.scorequest.domain.usecase.GetStreakUseCase
 import com.rogue.scorequest.domain.usecase.GetThemePreferenceUseCase
+import com.rogue.scorequest.domain.usecase.ImportSeedGamesUseCase
 import com.rogue.scorequest.domain.usecase.RateGameUseCase
 import com.rogue.scorequest.domain.usecase.SaveGameScoreSchemaUseCase
 import com.rogue.scorequest.domain.usecase.SaveGameSessionUseCase
@@ -101,4 +102,5 @@ val appModule = module {
     // Use cases - config
     factory { GetThemePreferenceUseCase(get()) }
     factory { SetThemePreferenceUseCase(get()) }
+    factory { ImportSeedGamesUseCase(get(), get()) }
 }

@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "description": "Seed inicial de jogos para popular o acervo do ScoreQuest. Cada entrada em 'games' segue o formato de domain/model/BoardGame.kt; cada entrada em 'scoreSchemas' segue domain/model/GameScoreSchema.kt (fields/formula) e referencia o jogo pelo campo 'gameId'. IDs aqui são slugs estáveis, não UUIDs reais — uma rotina de seed deve gerar UUID de verdade na hora de inserir e manter a referência gameId consistente entre as duas listas.",
+  "games": [
+    {
+      "id": "seed-7-wonders",
+      "name": "7 Wonders",
+      "minPlayers": 2,
+      "maxPlayers": 7,
+      "avgDurationMinutes": 30,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/8_t.jpg",
+      "category": "Jogo de Cartas / Civilização",
+      "weight": 2.3,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Antoine Bauza",
+        "yearPublished": 2010,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/7-wonders",
+        "notes": "Dados extraídos da página do Ludopedia em 11/08/2026. Peso 2.3 é referência de complexidade da BGG (não listado no Ludopedia, que não traz esse campo) — mesma convenção 'estilo BGG' já usada em BoardGame.weight."
+      }
+    }
+  ],
+  "scoreSchemas": [
+    {
+      "gameId": "seed-7-wonders",
+      "type": "COMPOSITE",
+      "winnerMode": "AUTOMATIC",
+      "fields": [
+        {
+          "type": "NUMBER",
+          "key": "conflitos_militares",
+          "label": "Conflitos Militares",
+          "default": 0,
+          "allowNegative": true
+        },
+        {
+          "type": "NUMBER",
+          "key": "tesouro",
+          "label": "Tesouro (Moedas ÷ 3)",
+          "default": 0,
+          "allowNegative": false
+        },
+        {
+          "type": "NUMBER",
+          "key": "maravilha",
+          "label": "Maravilha",
+          "default": 0,
+          "allowNegative": false
+        },
+        {
+          "type": "NUMBER",
+          "key": "estruturas_civis",
+          "label": "Estruturas Civis",
+          "default": 0,
+          "allowNegative": false
+        },
+        {
+          "type": "NUMBER",
+          "key": "estruturas_cientificas",
+          "label": "Estruturas Científicas",
+          "default": 0,
+          "allowNegative": false
+        },
+        {
+          "type": "NUMBER",
+          "key": "estruturas_comerciais",
+          "label": "Estruturas Comerciais",
+          "default": 0,
+          "allowNegative": false
+        },
+        {
+          "type": "NUMBER",
+          "key": "guildas",
+          "label": "Guildas",
+          "default": 0,
+          "allowNegative": false
+        }
+      ],
+      "formula": {
+        "terms": [
+          { "fieldKey": "conflitos_militares", "weight": 1.0 },
+          { "fieldKey": "tesouro", "weight": 1.0 },
+          { "fieldKey": "maravilha", "weight": 1.0 },
+          { "fieldKey": "estruturas_civis", "weight": 1.0 },
+          { "fieldKey": "estruturas_cientificas", "weight": 1.0 },
+          { "fieldKey": "estruturas_comerciais", "weight": 1.0 },
+          { "fieldKey": "guildas", "weight": 1.0 }
+        ],
+        "comparisonRule": "HIGHEST_WINS"
+      },
+      "notes": {
+        "origem": "Extraído de Regras/7_wonders_regras_completas_64462.pdf, seção 'Somando os Pontos' (jogo base, sem expansões).",
+        "porQueSubtotaisEPreCalculados": "A fórmula do app só soma valores com peso linear (Σ valor×peso). Duas categorias do 7 Wonders não são lineares: Tesouro é divisão inteira (moedas ÷ 3, resto descartado) e Estruturas Científicas usa quadrado do nº de símbolos iguais + bônus por trio de símbolos diferentes. Por isso cada campo pede o SUBTOTAL já calculado pelo jogador nessa categoria (igual à caderneta de pontuação oficial do jogo), não o valor bruto (nº de moedas, nº de símbolos etc).",
+        "desempate": "Regra oficial: em empate, vence quem tem mais moedas no tesouro. O app não calcula desempate automático por critério secundário — ao aparecer o diálogo de empate, usar 'Escolher manualmente' seguindo essa regra."
+      }
+    }
+  ]
+}

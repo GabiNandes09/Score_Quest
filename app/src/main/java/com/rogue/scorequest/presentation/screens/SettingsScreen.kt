@@ -1,13 +1,22 @@
 package com.rogue.scorequest.presentation.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -17,8 +26,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rogue.scorequest.domain.model.ImportResult
 import com.rogue.scorequest.presentation.viewmodel.SettingsViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -29,6 +40,20 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val content = runCatching {
+            context.contentResolver.openInputStream(uri)?.bufferedReader().use { it?.readText() }
+        }.getOrNull()
+
+        if (content != null) {
+            viewModel.onJsonSelected(content)
+        } else {
+            viewModel.onJsonReadError("Não foi possível ler o arquivo selecionado.")
+        }
+    }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Configurações") }) }
@@ -53,6 +78,16 @@ fun SettingsScreen(
                 Text("Gerenciar jogadores locais")
             }
 
+            OutlinedButton(
+                onClick = { importLauncher.launch(arrayOf("application/json")) },
+                enabled = !state.isImporting,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Filled.FileDownload, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(if (state.isImporting) "Importando..." else "Importar JSON")
+            }
+
             Text(
                 text = "ScoreQuest — v1.0",
                 style = MaterialTheme.typography.bodySmall,
@@ -60,4 +95,47 @@ fun SettingsScreen(
             )
         }
     }
+
+    state.importResult?.let { result ->
+        ImportResultDialog(result = result, onDismiss = viewModel::dismissImportResult)
+    }
+
+    state.importReadError?.let { error ->
+        AlertDialog(
+            onDismissRequest = viewModel::dismissImportReadError,
+            title = { Text("Erro ao importar") },
+            text = { Text(error) },
+            confirmButton = {
+                TextButton(onClick = viewModel::dismissImportReadError) { Text("OK") }
+            }
+        )
+    }
+}
+
+@Composable
+private fun ImportResultDialog(result: ImportResult, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Importação concluída") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("${result.gamesAdded} jogo(s) adicionado(s)")
+                Text("${result.gamesUpdated} jogo(s) atualizado(s)")
+                Text("${result.schemasImported} pontuação(ões) personalizada(s) importada(s)")
+                if (result.errors.isNotEmpty()) {
+                    Text(
+                        text = "Erros:",
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    result.errors.forEach { error ->
+                        Text(text = "• $error", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("OK") }
+        }
+    )
 }
