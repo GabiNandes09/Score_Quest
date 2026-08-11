@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ScoreQuest</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_games">Jogos</string>
+    <string name="nav_profile">Perfil</string>
+    <string name="nav_settings">Configurações</string>
+    <string name="add_session_fab_description">Registrar partida</string>
+</resources>
