@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.rogue.scorequest.presentation.components.PlayerIdentityRow
 import com.rogue.scorequest.presentation.viewmodel.SessionDetailViewModel
 import com.rogue.scorequest.utils.toRelativeDayString
 import org.koin.androidx.compose.koinViewModel
@@ -86,13 +87,12 @@ fun SessionDetailScreen(
                 Text(text = "Jogadores e pontuação", style = MaterialTheme.typography.titleMedium)
                 current.scores.forEach { score ->
                     val nickname = players.find { it.id == score.playerId }?.nickname ?: score.playerId
-                    val winnerTag = if (score.isWinner == true) " 🏆" else ""
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = nickname)
-                        Text(text = "${score.totalScore ?: "-"}$winnerTag")
+                        PlayerIdentityRow(name = nickname, isWinner = score.isWinner == true)
+                        Text(text = "${score.totalScore ?: "-"}")
                     }
                 }
             }

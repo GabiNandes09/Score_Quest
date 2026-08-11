@@ -66,6 +66,7 @@ fun GameDetailScreen(
     onBackClick: () -> Unit,
     onEditClick: () -> Unit,
     onRegisterSessionClick: () -> Unit,
+    onSessionClick: (String) -> Unit,
     viewModel: GameDetailViewModel = koinViewModel(parameters = { parametersOf(gameId) })
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -217,7 +218,11 @@ fun GameDetailScreen(
                 )
             }
             items(state.sessions) { session ->
-                SessionHistoryRow(session, modifier = Modifier.padding(horizontal = 16.dp))
+                SessionHistoryRow(
+                    session = session,
+                    onClick = { onSessionClick(session.session.id) },
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
             }
         }
 
@@ -325,8 +330,16 @@ private fun RatingRow(rating: Int, onRatingChange: (Int) -> Unit) {
 }
 
 @Composable
-private fun SessionHistoryRow(session: SessionWithDetails, modifier: Modifier = Modifier) {
-    Card(modifier = modifier.fillMaxWidth()) {
+private fun SessionHistoryRow(
+    session: SessionWithDetails,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = session.session.date.toRelativeDayString())
             Text(

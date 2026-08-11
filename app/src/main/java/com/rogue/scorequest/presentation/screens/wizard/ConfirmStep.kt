@@ -2,6 +2,7 @@ package com.rogue.scorequest.presentation.screens.wizard
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -18,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rogue.scorequest.presentation.components.PlayerIdentityRow
 import com.rogue.scorequest.presentation.viewmodel.AddSessionViewModel
 import java.time.format.DateTimeFormatter
 
@@ -63,8 +65,13 @@ fun ConfirmStep(
             Text(text = "Jogadores e pontuação", style = MaterialTheme.typography.titleMedium)
             participants.forEach { player ->
                 val entry = state.scores[player.id]
-                val winnerTag = if (entry?.isWinner == true) " 🏆" else ""
-                Text(text = "${player.nickname}: ${entry?.totalScore.orEmpty()}$winnerTag")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    PlayerIdentityRow(name = player.nickname, isWinner = entry?.isWinner == true)
+                    Text(text = entry?.totalScore.orEmpty())
+                }
             }
 
             Button(

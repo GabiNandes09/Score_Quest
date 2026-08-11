@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -27,6 +26,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rogue.scorequest.domain.model.Player
+import com.rogue.scorequest.presentation.components.PlayerIdentityRow
 import com.rogue.scorequest.presentation.viewmodel.AddSessionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,9 +94,10 @@ private fun ScoreRow(
                 .padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                text = player.nickname,
-                style = MaterialTheme.typography.bodyLarge,
+            PlayerIdentityRow(
+                name = player.nickname,
+                isWinner = isWinner,
+                onWinnerToggle = onWinnerToggle,
                 modifier = Modifier.weight(1f)
             )
             OutlinedTextField(
@@ -107,10 +108,6 @@ private fun ScoreRow(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 label = { Text("Pontos") }
             )
-            Column {
-                Text(text = "Venceu", style = MaterialTheme.typography.labelSmall)
-                Checkbox(checked = isWinner, onCheckedChange = { onWinnerToggle() })
-            }
         }
     }
 }

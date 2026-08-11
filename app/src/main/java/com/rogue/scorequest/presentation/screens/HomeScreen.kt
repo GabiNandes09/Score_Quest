@@ -20,9 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AcUnit
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Casino
-import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PlayArrow
@@ -51,6 +49,7 @@ import com.rogue.scorequest.presentation.components.GameCoverImage
 import com.rogue.scorequest.presentation.components.HorizontalBarChart
 import com.rogue.scorequest.presentation.components.LineChart
 import com.rogue.scorequest.presentation.components.LineChartEntry
+import com.rogue.scorequest.presentation.components.PlayerIdentityRow
 import com.rogue.scorequest.presentation.components.StatIconItem
 import com.rogue.scorequest.presentation.viewmodel.HomeViewModel
 import com.rogue.scorequest.presentation.viewmodel.states.HomeState
@@ -288,23 +287,7 @@ private fun LastSessionParticipantsPage(session: SessionWithDetails, players: Li
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Filled.AccountCircle,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = nickname, style = MaterialTheme.typography.bodyMedium)
-                    if (score.isWinner == true) {
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Icon(
-                            imageVector = Icons.Filled.EmojiEvents,
-                            contentDescription = null,
-                            tint = Gold
-                        )
-                    }
-                }
+                PlayerIdentityRow(name = nickname, isWinner = score.isWinner == true)
                 Text(text = "${score.totalScore ?: "-"}", style = MaterialTheme.typography.bodyMedium)
             }
         }

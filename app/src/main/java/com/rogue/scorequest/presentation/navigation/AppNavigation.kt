@@ -129,7 +129,8 @@ fun AppNavigation() {
                     onEditClick = { navController.navigate(Routes.AddEditGame.createRoute(gameId)) },
                     onRegisterSessionClick = {
                         navController.navigate(Routes.AddSessionWizardGraph.createRoute(gameId = gameId))
-                    }
+                    },
+                    onSessionClick = { sessionId -> navController.navigate(Routes.SessionDetail.createRoute(sessionId)) }
                 )
             }
 
