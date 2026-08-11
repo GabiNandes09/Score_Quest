@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -35,8 +36,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.rogue.scorequest.domain.model.EnumOption
 import com.rogue.scorequest.domain.model.ScoreFieldType
+import com.rogue.scorequest.ui.theme.Gold
 import java.util.Locale
 import java.util.UUID
+
+@Composable
+private fun goldTextFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedLabelColor = Gold,
+    unfocusedLabelColor = Gold,
+    focusedBorderColor = Gold
+)
 
 enum class FieldKind(val label: String) {
     NUMBER("Número"),
@@ -133,6 +142,7 @@ fun FieldConfigDialog(
                     onValueChange = { label = it },
                     label = { Text("Rótulo") },
                     singleLine = true,
+                    colors = goldTextFieldColors(),
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -144,6 +154,7 @@ fun FieldConfigDialog(
                             label = { Text("Valor padrão") },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            colors = goldTextFieldColors(),
                             modifier = Modifier.fillMaxWidth()
                         )
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -159,12 +170,13 @@ fun FieldConfigDialog(
                             label = { Text("Pontos se marcado (vazio = só anotação)") },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            colors = goldTextFieldColors(),
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
 
                     FieldKind.ENUM, FieldKind.MULTI_SELECT -> {
-                        Text("Opções", style = MaterialTheme.typography.labelLarge)
+                        Text("Opções", style = MaterialTheme.typography.labelLarge, color = Gold)
                         options.forEachIndexed { index, option ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -188,6 +200,7 @@ fun FieldConfigDialog(
                                 onValueChange = { newOptionLabel = it },
                                 label = { Text("Nova opção") },
                                 singleLine = true,
+                                colors = goldTextFieldColors(),
                                 modifier = Modifier.weight(1f)
                             )
                             OutlinedTextField(
@@ -196,6 +209,7 @@ fun FieldConfigDialog(
                                 label = { Text("Pts") },
                                 singleLine = true,
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                colors = goldTextFieldColors(),
                                 modifier = Modifier.width(80.dp)
                             )
                         }

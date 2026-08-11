@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.rogue.scorequest.presentation.components.rememberCameraCaptureAction
 import com.rogue.scorequest.presentation.viewmodel.EditProfileViewModel
 import com.rogue.scorequest.utils.ImageStorage
 import org.koin.androidx.compose.koinViewModel
@@ -49,10 +50,7 @@ fun EditProfileScreen(
         if (state.saved) onBackClick()
     }
 
-    var pendingCaptureUri by remember { mutableStateOf<android.net.Uri?>(null) }
-    val takePictureLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        if (success) pendingCaptureUri?.let { uri -> viewModel.onAvatarCaptured(ImageStorage.persistImage(context, uri)) }
-    }
+    val captureFromCamera = rememberCameraCaptureAction(onCaptured = viewModel::onAvatarCaptured)
     val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) viewModel.onAvatarCaptured(ImageStorage.persistImage(context, uri))
     }
@@ -81,11 +79,7 @@ fun EditProfileScreen(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = {
-                    val uri = ImageStorage.createCaptureUri(context)
-                    pendingCaptureUri = uri
-                    takePictureLauncher.launch(uri)
-                }) {
+                OutlinedButton(onClick = captureFromCamera) {
                     Text("Câmera")
                 }
                 OutlinedButton(onClick = {

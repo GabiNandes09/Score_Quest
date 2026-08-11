@@ -10,6 +10,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,6 +20,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.rogue.scorequest.domain.model.MULTI_SELECT_VALUE_SEPARATOR
 import com.rogue.scorequest.domain.model.ScoreFieldType
+import com.rogue.scorequest.ui.theme.Gold
 
 /**
  * Renders one input per composite-scoring field, shared by the schema
@@ -49,6 +51,11 @@ fun CompositeFieldInputForm(
                         label = { Text(field.label) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedLabelColor = Gold,
+                            unfocusedLabelColor = Gold,
+                            focusedBorderColor = Gold
+                        ),
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -59,13 +66,13 @@ fun CompositeFieldInputForm(
                             checked = values[field.key] == "true",
                             onCheckedChange = { checked -> onValueChange(field.key, checked.toString()) }
                         )
-                        Text(field.label)
+                        Text(field.label, color = Gold, style = MaterialTheme.typography.labelLarge)
                     }
                 }
 
                 is ScoreFieldType.EnumField -> {
                     Column {
-                        Text(field.label, style = MaterialTheme.typography.labelLarge)
+                        Text(field.label, style = MaterialTheme.typography.labelLarge, color = Gold)
                         field.options.forEach { option ->
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -86,7 +93,7 @@ fun CompositeFieldInputForm(
                 is ScoreFieldType.MultiSelectField -> {
                     val selected = values[field.key]?.split(MULTI_SELECT_VALUE_SEPARATOR)?.toSet() ?: emptySet()
                     Column {
-                        Text(field.label, style = MaterialTheme.typography.labelLarge)
+                        Text(field.label, style = MaterialTheme.typography.labelLarge, color = Gold)
                         field.options.forEach { option ->
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -115,6 +122,11 @@ fun CompositeFieldInputForm(
                         value = values[field.key] ?: "",
                         onValueChange = { onValueChange(field.key, it) },
                         label = { Text(field.label) },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedLabelColor = Gold,
+                            unfocusedLabelColor = Gold,
+                            focusedBorderColor = Gold
+                        ),
                         modifier = Modifier.fillMaxWidth()
                     )
                 }

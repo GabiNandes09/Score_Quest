@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.rogue.scorequest.domain.model.LibraryStatus
+import com.rogue.scorequest.presentation.components.rememberCameraCaptureAction
 import com.rogue.scorequest.presentation.viewmodel.AddEditGameViewModel
 import com.rogue.scorequest.utils.ImageStorage
 import org.koin.androidx.compose.koinViewModel
@@ -56,13 +57,7 @@ fun AddEditGameScreen(
         if (state.saved) onBackClick()
     }
 
-    var pendingCaptureUri by remember { mutableStateOf<android.net.Uri?>(null) }
-
-    val takePictureLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        if (success) {
-            pendingCaptureUri?.let { uri -> viewModel.onCoverCaptured(ImageStorage.persistImage(context, uri)) }
-        }
-    }
+    val captureFromCamera = rememberCameraCaptureAction(onCaptured = viewModel::onCoverCaptured)
 
     val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) viewModel.onCoverCaptured(ImageStorage.persistImage(context, uri))
@@ -97,11 +92,7 @@ fun AddEditGameScreen(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = {
-                    val uri = ImageStorage.createCaptureUri(context)
-                    pendingCaptureUri = uri
-                    takePictureLauncher.launch(uri)
-                }) {
+                OutlinedButton(onClick = captureFromCamera) {
                     Text("Câmera")
                 }
                 OutlinedButton(onClick = {
