@@ -1,6 +1,7 @@
 package com.rogue.scorequest.presentation.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,7 +25,9 @@ import androidx.compose.ui.unit.dp
 data class BarChartEntry(
     val label: String,
     val value: Float,
-    val displayValue: String
+    val displayValue: String,
+    val highlighted: Boolean = true,
+    val onClick: (() -> Unit)? = null
 )
 
 /**
@@ -43,8 +46,17 @@ fun HorizontalBarChart(
 
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         entries.forEach { entry ->
+            val barColor = if (entry.highlighted) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            }
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .let { rowModifier ->
+                        entry.onClick?.let { onClick -> rowModifier.clickable(onClick = onClick) } ?: rowModifier
+                    },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -67,7 +79,7 @@ fun HorizontalBarChart(
                             .fillMaxHeight()
                             .fillMaxWidth(fraction = (entry.value / maxValue).coerceIn(0.05f, 1f))
                             .clip(RoundedCornerShape(barHeight / 2))
-                            .background(MaterialTheme.colorScheme.primary)
+                            .background(barColor)
                     )
                 }
                 Text(

@@ -10,5 +10,6 @@ data class HomeStats(
     val streakDays: Int,
     val isStreakActive: Boolean,
     val topGames: List<GamePlayCount>,
+    val weekMinutes: Int,
     val totalMinutes: Int
 )

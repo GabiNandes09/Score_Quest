@@ -1,7 +1,9 @@
 package com.rogue.scorequest.presentation.viewmodel.states
 
+import com.rogue.scorequest.domain.model.DayActivity
+import com.rogue.scorequest.domain.model.DurationBucket
 import com.rogue.scorequest.domain.model.GamePlayCount
-import com.rogue.scorequest.domain.model.MonthlyPlaytime
+import com.rogue.scorequest.domain.model.MonthSessionCount
 import com.rogue.scorequest.domain.model.Player
 import com.rogue.scorequest.domain.model.SessionWithDetails
 
@@ -11,9 +13,12 @@ data class HomeState(
     val streakDays: Int = 0,
     val isStreakActive: Boolean = false,
     val totalSessions: Int = 0,
+    val weekMinutes: Int = 0,
     val totalMinutes: Int = 0,
     val topGames: List<GamePlayCount> = emptyList(),
-    val monthlyPlaytime: List<MonthlyPlaytime> = emptyList(),
+    val activityHeatmap: List<DayActivity> = emptyList(),
+    val sessionsByMonth: List<MonthSessionCount> = emptyList(),
+    val durationHistogram: List<DurationBucket> = emptyList(),
     val lastSession: SessionWithDetails? = null,
     val players: List<Player> = emptyList()
 )

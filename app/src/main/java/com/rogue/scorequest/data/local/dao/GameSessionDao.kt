@@ -8,9 +8,10 @@ import androidx.room.Transaction
 import androidx.room.Update
 import com.rogue.scorequest.data.local.entity.GameSessionEntity
 import com.rogue.scorequest.data.local.entity.SessionWithScoresEntity
+import com.rogue.scorequest.domain.model.DayActivity
 import com.rogue.scorequest.domain.model.GameLastPlayed
 import com.rogue.scorequest.domain.model.GamePlayCount
-import com.rogue.scorequest.domain.model.MonthlyPlaytime
+import com.rogue.scorequest.domain.model.MonthSessionCount
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -66,15 +67,31 @@ interface GameSessionDao {
     @Query("SELECT SUM(duration_minutes) FROM game_session WHERE deleted_at IS NULL")
     fun getTotalDurationMinutes(): Flow<Int?>
 
+    @Query("SELECT SUM(duration_minutes) FROM game_session WHERE deleted_at IS NULL AND date >= :sinceEpoch")
+    fun getDurationMinutesSince(sinceEpoch: Long): Flow<Int?>
+
     @Query(
         """
-        SELECT strftime('%Y-%m', datetime(date / 1000, 'unixepoch')) AS yearMonth, SUM(duration_minutes) AS totalMinutes
+        SELECT strftime('%Y-%m-%d', datetime(date / 1000, 'unixepoch')) AS day, COUNT(*) AS sessionCount
         FROM game_session
         WHERE deleted_at IS NULL AND date >= :sinceEpoch
-        GROUP BY yearMonth
+        GROUP BY day
         """
     )
-    fun getMonthlyPlaytimeSince(sinceEpoch: Long): Flow<List<MonthlyPlaytime>>
+    fun getActivityByDaySince(sinceEpoch: Long): Flow<List<DayActivity>>
+
+    @Query(
+        """
+        SELECT strftime('%m', datetime(date / 1000, 'unixepoch')) AS month, COUNT(*) AS sessionCount
+        FROM game_session
+        WHERE deleted_at IS NULL AND strftime('%Y', datetime(date / 1000, 'unixepoch')) = :year
+        GROUP BY month
+        """
+    )
+    fun getSessionCountByYear(year: String): Flow<List<MonthSessionCount>>
+
+    @Query("SELECT duration_minutes FROM game_session WHERE deleted_at IS NULL")
+    fun getAllSessionDurations(): Flow<List<Int>>
 
     @Query("SELECT COUNT(*) FROM game_session WHERE game_id = :gameId AND deleted_at IS NULL")
     fun getTimesPlayed(gameId: String): Flow<Int>

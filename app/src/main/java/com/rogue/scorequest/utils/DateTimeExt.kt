@@ -20,3 +20,10 @@ fun LocalDateTime.toRelativeDayString(): String {
         else -> "há $days dias"
     }
 }
+
+private val FULL_MONTH_NAMES = arrayOf(
+    "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+    "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
+)
+
+fun LocalDate.toDayMonthLabel(): String = "$dayOfMonth de ${FULL_MONTH_NAMES[monthValue - 1]}"

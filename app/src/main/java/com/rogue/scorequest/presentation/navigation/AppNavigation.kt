@@ -93,7 +93,8 @@ fun AppNavigation() {
         ) {
             composable(Routes.Home.route) {
                 HomeScreen(
-                    onRegisterSessionClick = { navController.navigate(Routes.AddSessionWizardGraph.createRoute()) }
+                    onRegisterSessionClick = { navController.navigate(Routes.AddSessionWizardGraph.createRoute()) },
+                    onGameClick = { gameId -> navController.navigate(Routes.GameDetail.createRoute(gameId)) }
                 )
             }
 

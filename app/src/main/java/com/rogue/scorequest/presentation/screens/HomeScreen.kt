@@ -21,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.Casino
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PlayArrow
@@ -40,10 +41,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rogue.scorequest.domain.model.DayActivity
+import com.rogue.scorequest.domain.model.DurationBucket
 import com.rogue.scorequest.domain.model.GamePlayCount
-import com.rogue.scorequest.domain.model.MonthlyPlaytime
+import com.rogue.scorequest.domain.model.MonthSessionCount
 import com.rogue.scorequest.domain.model.Player
 import com.rogue.scorequest.domain.model.SessionWithDetails
+import com.rogue.scorequest.presentation.components.ActivityHeatmap
 import com.rogue.scorequest.presentation.components.BarChartEntry
 import com.rogue.scorequest.presentation.components.GameCoverImage
 import com.rogue.scorequest.presentation.components.HorizontalBarChart
@@ -51,6 +55,8 @@ import com.rogue.scorequest.presentation.components.LineChart
 import com.rogue.scorequest.presentation.components.LineChartEntry
 import com.rogue.scorequest.presentation.components.PlayerIdentityRow
 import com.rogue.scorequest.presentation.components.StatIconItem
+import com.rogue.scorequest.presentation.components.VerticalBarChart
+import com.rogue.scorequest.presentation.components.VerticalBarEntry
 import com.rogue.scorequest.presentation.viewmodel.HomeViewModel
 import com.rogue.scorequest.presentation.viewmodel.states.HomeState
 import com.rogue.scorequest.ui.theme.Gold
@@ -59,10 +65,14 @@ import com.rogue.scorequest.utils.toRelativeDayString
 import com.rogue.scorequest.utils.toShortMonthLabel
 import org.koin.androidx.compose.koinViewModel
 
+private const val MIN_SESSIONS_FOR_HISTOGRAM = 5
+private const val MIN_MONTHS_FOR_TIMELINE = 3
+
 @Composable
 fun HomeScreen(
     onRegisterSessionClick: () -> Unit = {},
     onNotificationsClick: () -> Unit = {},
+    onGameClick: (String) -> Unit = {},
     viewModel: HomeViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -70,7 +80,8 @@ fun HomeScreen(
     HomeContent(
         state = state,
         onRegisterSessionClick = onRegisterSessionClick,
-        onNotificationsClick = onNotificationsClick
+        onNotificationsClick = onNotificationsClick,
+        onGameClick = onGameClick
     )
 }
 
@@ -78,7 +89,8 @@ fun HomeScreen(
 private fun HomeContent(
     state: HomeState,
     onRegisterSessionClick: () -> Unit,
-    onNotificationsClick: () -> Unit
+    onNotificationsClick: () -> Unit,
+    onGameClick: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -105,6 +117,7 @@ private fun HomeContent(
 
         HomeStatsCard(
             totalSessions = state.totalSessions,
+            weekMinutes = state.weekMinutes,
             totalMinutes = state.totalMinutes,
             streakDays = state.streakDays,
             isStreakActive = state.isStreakActive
@@ -114,12 +127,14 @@ private fun HomeContent(
             LastSessionCard(session = session, players = state.players)
         }
 
-        if (state.topGames.isNotEmpty()) {
-            TopGamesChartCard(state.topGames)
-        }
+        ActivityHeatmapCard(state.activityHeatmap)
 
-        if (state.monthlyPlaytime.isNotEmpty()) {
-            PlaytimeChartCard(state.monthlyPlaytime)
+        RankingCard(topGames = state.topGames, onGameClick = onGameClick)
+
+        TimelineCard(state.sessionsByMonth)
+
+        if (state.totalSessions >= MIN_SESSIONS_FOR_HISTOGRAM) {
+            HistogramCard(state.durationHistogram)
         }
     }
 }
@@ -145,6 +160,7 @@ private fun RegisterSessionButton(onClick: () -> Unit) {
 @Composable
 private fun HomeStatsCard(
     totalSessions: Int,
+    weekMinutes: Int,
     totalMinutes: Int,
     streakDays: Int,
     isStreakActive: Boolean
@@ -157,6 +173,7 @@ private fun HomeStatsCard(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             StatIconItem(icon = Icons.Filled.PlayArrow, value = "${totalSessions}x")
+            StatIconItem(icon = Icons.Filled.DateRange, value = formatDuration(weekMinutes))
             StatIconItem(icon = Icons.Filled.Timer, value = formatDuration(totalMinutes))
             StatIconItem(
                 icon = if (isStreakActive) Icons.Filled.LocalFireDepartment else Icons.Filled.AcUnit,
@@ -237,41 +254,6 @@ private fun LastSessionSummaryPage(session: SessionWithDetails, players: List<Pl
 }
 
 @Composable
-private fun TopGamesChartCard(topGames: List<GamePlayCount>) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(text = "Top jogos", style = MaterialTheme.typography.titleMedium)
-            HorizontalBarChart(
-                entries = topGames.map { game ->
-                    BarChartEntry(
-                        label = game.gameName,
-                        value = game.playCount.toFloat(),
-                        displayValue = "${game.playCount}x"
-                    )
-                }
-            )
-        }
-    }
-}
-
-@Composable
-private fun PlaytimeChartCard(monthlyPlaytime: List<MonthlyPlaytime>) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(text = "Tempo de jogo (últimos 12 meses)", style = MaterialTheme.typography.titleMedium)
-            LineChart(
-                entries = monthlyPlaytime.map { month ->
-                    LineChartEntry(
-                        label = month.yearMonth.toShortMonthLabel(),
-                        value = month.totalMinutes.toFloat()
-                    )
-                }
-            )
-        }
-    }
-}
-
-@Composable
 private fun LastSessionParticipantsPage(session: SessionWithDetails, players: List<Player>) {
     Column(
         modifier = Modifier
@@ -290,6 +272,89 @@ private fun LastSessionParticipantsPage(session: SessionWithDetails, players: Li
                 PlayerIdentityRow(name = nickname, isWinner = score.isWinner == true)
                 Text(text = "${score.totalScore ?: "-"}", style = MaterialTheme.typography.bodyMedium)
             }
+        }
+    }
+}
+
+@Composable
+private fun ActivityHeatmapCard(days: List<DayActivity>) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(text = "Atividade recente", style = MaterialTheme.typography.titleMedium)
+            ActivityHeatmap(days = days, modifier = Modifier.fillMaxWidth())
+        }
+    }
+}
+
+@Composable
+private fun RankingCard(topGames: List<GamePlayCount>, onGameClick: (String) -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(text = "Ranking dos mais jogados", style = MaterialTheme.typography.titleMedium)
+            if (topGames.isEmpty()) {
+                Text(
+                    text = "Jogue sua primeira partida pra ver seu ranking aqui",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                HorizontalBarChart(
+                    entries = topGames.mapIndexed { index, game ->
+                        BarChartEntry(
+                            label = game.gameName,
+                            value = game.playCount.toFloat(),
+                            displayValue = "${game.playCount}x",
+                            highlighted = index == 0,
+                            onClick = { onGameClick(game.gameId) }
+                        )
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TimelineCard(sessionsByMonth: List<MonthSessionCount>) {
+    val nonZeroMonths = sessionsByMonth.count { it.sessionCount > 0 }
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(text = "Partidas por mês", style = MaterialTheme.typography.titleMedium)
+            if (nonZeroMonths < MIN_MONTHS_FOR_TIMELINE) {
+                val firstMonthLabel = sessionsByMonth.firstOrNull { it.sessionCount > 0 }?.month?.toShortMonthLabel()
+                Text(
+                    text = firstMonthLabel?.let { "Você começou a registrar partidas em $it" }
+                        ?: "Nenhuma partida registrada este ano ainda.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                LineChart(
+                    entries = sessionsByMonth.map { month ->
+                        LineChartEntry(label = month.month.toShortMonthLabel(), value = month.sessionCount.toFloat())
+                    },
+                    showAreaFill = true
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HistogramCard(histogram: List<DurationBucket>) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(text = "Duração das partidas", style = MaterialTheme.typography.titleMedium)
+            VerticalBarChart(
+                entries = histogram.map { bucket ->
+                    VerticalBarEntry(
+                        label = bucket.label,
+                        value = bucket.sessionCount.toFloat(),
+                        displayValue = "${bucket.sessionCount}"
+                    )
+                }
+            )
         }
     }
 }

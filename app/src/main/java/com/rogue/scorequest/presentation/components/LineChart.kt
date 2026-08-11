@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
@@ -32,7 +33,8 @@ data class LineChartEntry(
 fun LineChart(
     entries: List<LineChartEntry>,
     modifier: Modifier = Modifier,
-    chartHeight: Dp = 140.dp
+    chartHeight: Dp = 140.dp,
+    showAreaFill: Boolean = false
 ) {
     if (entries.isEmpty()) return
 
@@ -71,6 +73,24 @@ fun LineChart(
                     if (index == 0) moveTo(point.x, point.y) else lineTo(point.x, point.y)
                 }
             }
+
+            if (showAreaFill && points.isNotEmpty()) {
+                val areaPath = Path().apply {
+                    addPath(path)
+                    lineTo(points.last().x, size.height - bottomPadding)
+                    lineTo(points.first().x, size.height - bottomPadding)
+                    close()
+                }
+                drawPath(
+                    path = areaPath,
+                    brush = Brush.verticalGradient(
+                        colors = listOf(lineColor.copy(alpha = 0.35f), lineColor.copy(alpha = 0f)),
+                        startY = topPadding,
+                        endY = size.height - bottomPadding
+                    )
+                )
+            }
+
             drawPath(
                 path = path,
                 color = lineColor,

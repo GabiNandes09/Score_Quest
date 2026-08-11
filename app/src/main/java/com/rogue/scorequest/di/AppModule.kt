@@ -8,18 +8,20 @@ import com.rogue.scorequest.domain.usecase.AddUserGameUseCase
 import com.rogue.scorequest.domain.usecase.CreatePlayerUseCase
 import com.rogue.scorequest.domain.usecase.DeleteGameSessionUseCase
 import com.rogue.scorequest.domain.usecase.DeletePlayerUseCase
+import com.rogue.scorequest.domain.usecase.GetActivityHeatmapUseCase
+import com.rogue.scorequest.domain.usecase.GetDurationHistogramUseCase
 import com.rogue.scorequest.domain.usecase.GetFavoriteGamesUseCase
 import com.rogue.scorequest.domain.usecase.GetGameDetailUseCase
 import com.rogue.scorequest.domain.usecase.GetGameStatsUseCase
 import com.rogue.scorequest.domain.usecase.GetGamesUseCase
 import com.rogue.scorequest.domain.usecase.GetHomeStatsUseCase
 import com.rogue.scorequest.domain.usecase.GetLastPlayedDatesUseCase
-import com.rogue.scorequest.domain.usecase.GetMonthlyPlaytimeUseCase
 import com.rogue.scorequest.domain.usecase.GetPlayersUseCase
 import com.rogue.scorequest.domain.usecase.GetProfileUseCase
 import com.rogue.scorequest.domain.usecase.GetRecentSessionsUseCase
 import com.rogue.scorequest.domain.usecase.GetSessionCountUseCase
 import com.rogue.scorequest.domain.usecase.GetSessionDetailUseCase
+import com.rogue.scorequest.domain.usecase.GetSessionsByMonthUseCase
 import com.rogue.scorequest.domain.usecase.GetSessionsForGameUseCase
 import com.rogue.scorequest.domain.usecase.GetSessionsPagedUseCase
 import com.rogue.scorequest.domain.usecase.GetStreakUseCase
@@ -74,7 +76,9 @@ val appModule = module {
     // Use cases - home/stats
     factory { GetStreakUseCase(get()) }
     factory { GetHomeStatsUseCase(get(), get()) }
-    factory { GetMonthlyPlaytimeUseCase(get()) }
+    factory { GetActivityHeatmapUseCase(get()) }
+    factory { GetSessionsByMonthUseCase(get()) }
+    factory { GetDurationHistogramUseCase(get()) }
 
     // Use cases - perfil
     factory { GetProfileUseCase(get()) }

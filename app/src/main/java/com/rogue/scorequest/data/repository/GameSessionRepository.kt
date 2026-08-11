@@ -10,11 +10,12 @@ import com.rogue.scorequest.data.local.dao.UserLibraryEntryDao
 import com.rogue.scorequest.data.local.entity.UserLibraryEntryEntity
 import com.rogue.scorequest.data.local.entity.toDomain
 import com.rogue.scorequest.data.local.entity.toEntity
+import com.rogue.scorequest.domain.model.DayActivity
 import com.rogue.scorequest.domain.model.GamePlayCount
 import com.rogue.scorequest.domain.model.GameSession
 import com.rogue.scorequest.domain.model.GameStats
 import com.rogue.scorequest.domain.model.LibraryStatus
-import com.rogue.scorequest.domain.model.MonthlyPlaytime
+import com.rogue.scorequest.domain.model.MonthSessionCount
 import com.rogue.scorequest.domain.model.ScoreEntry
 import com.rogue.scorequest.domain.model.SessionWithDetails
 import kotlinx.coroutines.flow.Flow
@@ -59,8 +60,15 @@ class GameSessionRepository(
 
     fun getTotalDurationMinutes(): Flow<Int?> = gameSessionDao.getTotalDurationMinutes()
 
-    fun getMonthlyPlaytimeSince(sinceEpoch: Long): Flow<List<MonthlyPlaytime>> =
-        gameSessionDao.getMonthlyPlaytimeSince(sinceEpoch)
+    fun getDurationMinutesSince(sinceEpoch: Long): Flow<Int?> = gameSessionDao.getDurationMinutesSince(sinceEpoch)
+
+    fun getActivityByDaySince(sinceEpoch: Long): Flow<List<DayActivity>> =
+        gameSessionDao.getActivityByDaySince(sinceEpoch)
+
+    fun getSessionCountByYear(year: String): Flow<List<MonthSessionCount>> =
+        gameSessionDao.getSessionCountByYear(year)
+
+    fun getAllSessionDurations(): Flow<List<Int>> = gameSessionDao.getAllSessionDurations()
 
     fun getAllSessionDates(): Flow<List<Long>> = gameSessionDao.getAllSessionDates()
 
