@@ -7,8 +7,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -24,13 +30,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rogue.scorequest.domain.model.Player
 import com.rogue.scorequest.domain.model.ScoreSchemaType
 import com.rogue.scorequest.domain.model.WinnerMode
 import com.rogue.scorequest.presentation.components.PlayerIdentityRow
+import com.rogue.scorequest.presentation.components.StatIconItem
 import com.rogue.scorequest.presentation.viewmodel.AddSessionViewModel
+import com.rogue.scorequest.ui.theme.Gold
 import java.time.format.DateTimeFormatter
 
 private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -76,43 +85,65 @@ fun ConfirmStep(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(text = state.selectedGameName, style = MaterialTheme.typography.headlineSmall)
-            Text(text = "Data: ${state.date.format(dateFormatter)}")
-            Text(text = "Duração: ${state.durationMinutes} min")
-            if (state.variantOrExpansion.isNotBlank()) {
-                Text(text = "Variante: ${state.variantOrExpansion}")
-            }
-
-            Text(text = "Jogadores e pontuação", style = MaterialTheme.typography.titleMedium)
-
-            if (isComposite) {
-                when (schema?.winnerMode) {
-                    WinnerMode.MANUAL -> ManualWinnerList(
-                        participants = participants,
-                        selectedId = state.manualWinnerId,
-                        onSelected = viewModel::onManualWinnerSelected
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = state.selectedGameName,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
                     )
-                    WinnerMode.AUTOMATIC -> AutomaticWinnerList(
-                        participants = participants,
-                        winnerIds = state.automaticWinnerIds,
-                        totalFor = viewModel::calculateTotalFor
-                    )
-                    else -> participants.forEach { player ->
-                        PlayerIdentityRow(name = player.nickname, isWinner = false)
-                    }
-                }
-            } else {
-                participants.forEach { player ->
-                    val entry = state.scores[player.id]
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        PlayerIdentityRow(name = player.nickname, isWinner = entry?.isWinner == true)
-                        Text(text = entry?.totalScore.orEmpty())
+                        StatIconItem(icon = Icons.Filled.DateRange, value = state.date.format(dateFormatter))
+                        StatIconItem(icon = Icons.Filled.Timer, value = "${state.durationMinutes} min")
+                    }
+                    if (state.variantOrExpansion.isNotBlank()) {
+                        Text(
+                            text = "Variante: ${state.variantOrExpansion}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(text = "Jogadores e pontuação", style = MaterialTheme.typography.titleMedium, color = Gold)
+
+                    if (isComposite) {
+                        when (schema?.winnerMode) {
+                            WinnerMode.MANUAL -> ManualWinnerList(
+                                participants = participants,
+                                selectedId = state.manualWinnerId,
+                                onSelected = viewModel::onManualWinnerSelected
+                            )
+                            WinnerMode.AUTOMATIC -> AutomaticWinnerList(
+                                participants = participants,
+                                winnerIds = state.automaticWinnerIds,
+                                totalFor = viewModel::calculateTotalFor
+                            )
+                            else -> participants.forEach { player ->
+                                PlayerIdentityRow(name = player.nickname, isWinner = false)
+                            }
+                        }
+                    } else {
+                        participants.forEach { player ->
+                            val entry = state.scores[player.id]
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                PlayerIdentityRow(name = player.nickname, isWinner = entry?.isWinner == true)
+                                Text(text = entry?.totalScore.orEmpty())
+                            }
+                        }
                     }
                 }
             }
