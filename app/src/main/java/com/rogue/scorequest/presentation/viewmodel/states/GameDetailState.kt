@@ -8,5 +8,6 @@ data class GameDetailState(
     val isLoading: Boolean = true,
     val game: GameWithLibraryInfo? = null,
     val stats: GameStats? = null,
-    val sessions: List<SessionWithDetails> = emptyList()
+    val sessions: List<SessionWithDetails> = emptyList(),
+    val hasScoreSchema: Boolean = false
 )

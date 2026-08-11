@@ -9,16 +9,17 @@ import com.rogue.scorequest.presentation.viewmodel.GamesViewModel
 import com.rogue.scorequest.presentation.viewmodel.HomeViewModel
 import com.rogue.scorequest.presentation.viewmodel.ManagePlayersViewModel
 import com.rogue.scorequest.presentation.viewmodel.ProfileViewModel
+import com.rogue.scorequest.presentation.viewmodel.ScoreSchemaBuilderViewModel
 import com.rogue.scorequest.presentation.viewmodel.SessionDetailViewModel
 import com.rogue.scorequest.presentation.viewmodel.SettingsViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val viewModelModule = module {
-    viewModel { (sessionId: String, gameId: String) -> AddSessionViewModel(sessionId, gameId, get(), get(), get(), get(), get(), get()) }
+    viewModel { (sessionId: String, gameId: String) -> AddSessionViewModel(sessionId, gameId, get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { HomeViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { GamesViewModel(get(), get()) }
-    viewModel { (gameId: String) -> GameDetailViewModel(gameId, get(), get(), get(), get(), get(), get()) }
+    viewModel { (gameId: String) -> GameDetailViewModel(gameId, get(), get(), get(), get(), get(), get(), get()) }
     viewModel { (gameId: String) -> AddEditGameViewModel(gameId, get(), get(), get()) }
     viewModel { ProfileViewModel(get(), get(), get(), get()) }
     viewModel { (sessionId: String) -> SessionDetailViewModel(sessionId, get(), get(), get()) }
@@ -26,4 +27,5 @@ val viewModelModule = module {
     viewModel { EditFavoritesViewModel(get(), get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }
     viewModel { ManagePlayersViewModel(get(), get(), get()) }
+    viewModel { (gameId: String) -> ScoreSchemaBuilderViewModel(gameId, get(), get(), get(), get(), get()) }
 }

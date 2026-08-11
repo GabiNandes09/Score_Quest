@@ -34,6 +34,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -67,6 +68,7 @@ fun GameDetailScreen(
     onEditClick: () -> Unit,
     onRegisterSessionClick: () -> Unit,
     onSessionClick: (String) -> Unit,
+    onConfigureScoreClick: () -> Unit,
     viewModel: GameDetailViewModel = koinViewModel(parameters = { parametersOf(gameId) })
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -206,6 +208,17 @@ fun GameDetailScreen(
                         }
                     }
                 }
+            }
+        }
+
+        item {
+            OutlinedButton(
+                onClick = onConfigureScoreClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                Text(if (state.hasScoreSchema) "Editar pontuação personalizada" else "Configurar pontuação personalizada")
             }
         }
 

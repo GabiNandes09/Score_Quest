@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rogue.scorequest.domain.model.LibraryStatus
 import com.rogue.scorequest.domain.usecase.GetGameDetailUseCase
+import com.rogue.scorequest.domain.usecase.GetGameScoreSchemaUseCase
 import com.rogue.scorequest.domain.usecase.GetGameStatsUseCase
 import com.rogue.scorequest.domain.usecase.GetSessionsForGameUseCase
 import com.rogue.scorequest.domain.usecase.RateGameUseCase
@@ -20,6 +21,7 @@ class GameDetailViewModel(
     getGameDetail: GetGameDetailUseCase,
     getGameStats: GetGameStatsUseCase,
     getSessionsForGame: GetSessionsForGameUseCase,
+    getGameScoreSchema: GetGameScoreSchemaUseCase,
     private val updateLibraryStatusUseCase: UpdateLibraryStatusUseCase,
     private val setLoanUseCase: SetLoanUseCase,
     private val rateGameUseCase: RateGameUseCase
@@ -28,9 +30,10 @@ class GameDetailViewModel(
     val state = combine(
         getGameDetail(gameId),
         getGameStats(gameId),
-        getSessionsForGame(gameId)
-    ) { game, stats, sessions ->
-        GameDetailState(isLoading = false, game = game, stats = stats, sessions = sessions)
+        getSessionsForGame(gameId),
+        getGameScoreSchema(gameId)
+    ) { game, stats, sessions, schema ->
+        GameDetailState(isLoading = false, game = game, stats = stats, sessions = sessions, hasScoreSchema = schema != null)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), GameDetailState())
 
     fun onStatusChange(status: LibraryStatus) {

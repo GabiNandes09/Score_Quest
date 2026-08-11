@@ -29,7 +29,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rogue.scorequest.R
+import com.rogue.scorequest.domain.model.ScoreSchemaType
 import com.rogue.scorequest.presentation.screens.AddEditGameScreen
 import com.rogue.scorequest.presentation.screens.EditFavoritesScreen
 import com.rogue.scorequest.presentation.screens.EditProfileScreen
@@ -40,7 +42,9 @@ import com.rogue.scorequest.presentation.screens.ManagePlayersScreen
 import com.rogue.scorequest.presentation.screens.ProfileScreen
 import com.rogue.scorequest.presentation.screens.SessionDetailScreen
 import com.rogue.scorequest.presentation.screens.SettingsScreen
+import com.rogue.scorequest.presentation.screens.scoreschema.ScoreSchemaBuilderScreen
 import com.rogue.scorequest.presentation.screens.wizard.ChooseGameStep
+import com.rogue.scorequest.presentation.screens.wizard.CompositeScoringStep
 import com.rogue.scorequest.presentation.screens.wizard.ConfirmStep
 import com.rogue.scorequest.presentation.screens.wizard.PlayersStep
 import com.rogue.scorequest.presentation.screens.wizard.ScoringStep
@@ -131,7 +135,19 @@ fun AppNavigation() {
                     onRegisterSessionClick = {
                         navController.navigate(Routes.AddSessionWizardGraph.createRoute(gameId = gameId))
                     },
-                    onSessionClick = { sessionId -> navController.navigate(Routes.SessionDetail.createRoute(sessionId)) }
+                    onSessionClick = { sessionId -> navController.navigate(Routes.SessionDetail.createRoute(sessionId)) },
+                    onConfigureScoreClick = { navController.navigate(Routes.ScoreSchemaBuilder.createRoute(gameId)) }
+                )
+            }
+
+            composable(
+                route = Routes.ScoreSchemaBuilder.route,
+                arguments = listOf(navArgument("gameId") { type = NavType.StringType })
+            ) { entry ->
+                val gameId = entry.arguments?.getString("gameId").orEmpty()
+                ScoreSchemaBuilderScreen(
+                    gameId = gameId,
+                    onBackClick = { navController.popBackStack() }
                 )
             }
 
@@ -212,9 +228,17 @@ fun AppNavigation() {
                     arguments = wizardArgs
                 ) { entry ->
                     val viewModel = wizardViewModel(entry, navController)
+                    val schema by viewModel.schema.collectAsStateWithLifecycle()
                     PlayersStep(
                         viewModel = viewModel,
-                        onNext = { navController.navigate(routeForStep(Routes.WizardScoring.route, viewModel)) },
+                        onNext = {
+                            val nextRoute = if (schema?.type == ScoreSchemaType.COMPOSITE) {
+                                Routes.WizardCompositeScoring.route
+                            } else {
+                                Routes.WizardScoring.route
+                            }
+                            navController.navigate(routeForStep(nextRoute, viewModel))
+                        },
                         onBack = { navController.popBackStack() }
                     )
                 }
@@ -225,6 +249,18 @@ fun AppNavigation() {
                 ) { entry ->
                     val viewModel = wizardViewModel(entry, navController)
                     ScoringStep(
+                        viewModel = viewModel,
+                        onNext = { navController.navigate(routeForStep(Routes.WizardConfirm.route, viewModel)) },
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(
+                    route = Routes.WizardCompositeScoring.route,
+                    arguments = wizardArgs
+                ) { entry ->
+                    val viewModel = wizardViewModel(entry, navController)
+                    CompositeScoringStep(
                         viewModel = viewModel,
                         onNext = { navController.navigate(routeForStep(Routes.WizardConfirm.route, viewModel)) },
                         onBack = { navController.popBackStack() }

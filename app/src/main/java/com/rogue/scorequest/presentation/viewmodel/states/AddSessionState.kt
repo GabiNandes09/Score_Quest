@@ -22,7 +22,13 @@ data class AddSessionState(
     val photoPath: String? = null,
 
     val selectedPlayerIds: List<String> = emptyList(),
-    val scores: Map<String, ScoreEntryInput> = emptyMap()
+    val scores: Map<String, ScoreEntryInput> = emptyMap(),
+
+    // Pontuação composta (schema COMPOSITE, ver seção 8 do doc de produto)
+    val compositeFieldValues: Map<String, Map<String, String>> = emptyMap(), // playerId -> fieldKey -> valor
+    val manualWinnerId: String? = null, // winnerMode = MANUAL
+    val automaticWinnerIds: Set<String> = emptySet(), // winnerMode = AUTOMATIC, já resolvido (inclui empate considerado)
+    val pendingTieCandidateIds: List<String> = emptyList() // winnerMode = AUTOMATIC, aguardando decisão do usuário
 ) {
     val canProceedFromGameStep: Boolean get() = selectedGameId != null
     val canProceedFromSessionDataStep: Boolean get() = durationMinutes.toIntOrNull() != null

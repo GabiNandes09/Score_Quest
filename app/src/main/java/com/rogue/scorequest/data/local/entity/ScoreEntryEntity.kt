@@ -7,6 +7,8 @@ import androidx.room.Index
 import com.rogue.scorequest.domain.model.ScoreEntry
 import com.rogue.scorequest.utils.toEpochMillis
 import com.rogue.scorequest.utils.toLocalDateTime
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @Entity(
     tableName = "score_entry",
@@ -30,6 +32,7 @@ data class ScoreEntryEntity(
     @ColumnInfo(name = "player_id") val playerId: String,
     @ColumnInfo(name = "total_score") val totalScore: Int?,
     @ColumnInfo(name = "is_winner") val isWinner: Boolean?,
+    @ColumnInfo(name = "field_values_json") val fieldValuesJson: String?,
     @ColumnInfo(name = "created_at") val createdAt: Long,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
     @ColumnInfo(name = "deleted_at") val deletedAt: Long?
@@ -40,6 +43,7 @@ fun ScoreEntryEntity.toDomain() = ScoreEntry(
     playerId = playerId,
     totalScore = totalScore,
     isWinner = isWinner,
+    fieldValues = fieldValuesJson?.let { Json.decodeFromString(it) },
     createdAt = createdAt.toLocalDateTime(),
     updatedAt = updatedAt.toLocalDateTime(),
     deletedAt = deletedAt?.toLocalDateTime()
@@ -50,6 +54,7 @@ fun ScoreEntry.toEntity() = ScoreEntryEntity(
     playerId = playerId,
     totalScore = totalScore,
     isWinner = isWinner,
+    fieldValuesJson = fieldValues?.let { Json.encodeToString(it) },
     createdAt = createdAt.toEpochMillis(),
     updatedAt = updatedAt.toEpochMillis(),
     deletedAt = deletedAt?.toEpochMillis()

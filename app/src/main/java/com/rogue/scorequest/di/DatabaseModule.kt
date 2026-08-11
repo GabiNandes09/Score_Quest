@@ -19,4 +19,5 @@ val databaseModule = module {
     single { get<AppDatabase>().scoreEntryDao() }
     single { get<AppDatabase>().userProfileDao() }
     single { get<AppDatabase>().favoriteGameDao() }
+    single { get<AppDatabase>().gameScoreSchemaDao() }
 }

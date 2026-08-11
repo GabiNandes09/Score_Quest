@@ -18,6 +18,10 @@ sealed class Routes(
         fun createRoute(gameId: String = NEW_GAME) = "add_edit_game/$gameId"
     }
 
+    data object ScoreSchemaBuilder : Routes("score_schema_builder/{gameId}") {
+        fun createRoute(gameId: String) = "score_schema_builder/$gameId"
+    }
+
     data object SessionDetail : Routes("session_detail/{sessionId}") {
         fun createRoute(sessionId: String) = "session_detail/$sessionId"
     }
@@ -37,5 +41,6 @@ sealed class Routes(
     data object WizardSessionData : Routes("add_session_wizard/{sessionId}/{gameId}/session_data")
     data object WizardPlayers : Routes("add_session_wizard/{sessionId}/{gameId}/players")
     data object WizardScoring : Routes("add_session_wizard/{sessionId}/{gameId}/scoring")
+    data object WizardCompositeScoring : Routes("add_session_wizard/{sessionId}/{gameId}/composite_scoring")
     data object WizardConfirm : Routes("add_session_wizard/{sessionId}/{gameId}/confirm")
 }

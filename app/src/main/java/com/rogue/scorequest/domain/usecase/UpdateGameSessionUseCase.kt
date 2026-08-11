@@ -37,6 +37,7 @@ class UpdateGameSessionUseCase(
                 playerId = input.playerId,
                 totalScore = input.totalScore,
                 isWinner = input.isWinner,
+                fieldValues = input.fieldValues,
                 createdAt = now,
                 updatedAt = now
             )

@@ -3,5 +3,6 @@ package com.rogue.scorequest.domain.model
 data class ScoreInput(
     val playerId: String,
     val totalScore: Int?,
-    val isWinner: Boolean?
+    val isWinner: Boolean?,
+    val fieldValues: Map<String, String>? = null
 )

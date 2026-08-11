@@ -1,17 +1,21 @@
 package com.rogue.scorequest.di
 
 import com.rogue.scorequest.data.repository.BoardGameRepository
+import com.rogue.scorequest.data.repository.GameScoreSchemaRepository
 import com.rogue.scorequest.data.repository.GameSessionRepository
 import com.rogue.scorequest.data.repository.PlayerRepository
 import com.rogue.scorequest.data.repository.ProfileRepository
 import com.rogue.scorequest.domain.usecase.AddUserGameUseCase
+import com.rogue.scorequest.domain.usecase.CalculateScoreFormulaUseCase
 import com.rogue.scorequest.domain.usecase.CreatePlayerUseCase
 import com.rogue.scorequest.domain.usecase.DeleteGameSessionUseCase
 import com.rogue.scorequest.domain.usecase.DeletePlayerUseCase
 import com.rogue.scorequest.domain.usecase.GetActivityHeatmapUseCase
+import com.rogue.scorequest.domain.usecase.GetDuplicableSchemasUseCase
 import com.rogue.scorequest.domain.usecase.GetDurationHistogramUseCase
 import com.rogue.scorequest.domain.usecase.GetFavoriteGamesUseCase
 import com.rogue.scorequest.domain.usecase.GetGameDetailUseCase
+import com.rogue.scorequest.domain.usecase.GetGameScoreSchemaUseCase
 import com.rogue.scorequest.domain.usecase.GetGameStatsUseCase
 import com.rogue.scorequest.domain.usecase.GetGamesUseCase
 import com.rogue.scorequest.domain.usecase.GetHomeStatsUseCase
@@ -27,6 +31,7 @@ import com.rogue.scorequest.domain.usecase.GetSessionsPagedUseCase
 import com.rogue.scorequest.domain.usecase.GetStreakUseCase
 import com.rogue.scorequest.domain.usecase.GetThemePreferenceUseCase
 import com.rogue.scorequest.domain.usecase.RateGameUseCase
+import com.rogue.scorequest.domain.usecase.SaveGameScoreSchemaUseCase
 import com.rogue.scorequest.domain.usecase.SaveGameSessionUseCase
 import com.rogue.scorequest.domain.usecase.SetFavoriteGameUseCase
 import com.rogue.scorequest.domain.usecase.SetLoanUseCase
@@ -45,6 +50,7 @@ val appModule = module {
     single { PlayerRepository(get()) }
     single { GameSessionRepository(get(), get(), get()) }
     single { ProfileRepository(get(), get()) }
+    single { GameScoreSchemaRepository(get()) }
 
     // Use cases - jogos/estante
     factory { GetGamesUseCase(get()) }
@@ -57,6 +63,12 @@ val appModule = module {
     factory { GetGameStatsUseCase(get()) }
     factory { GetSessionsForGameUseCase(get()) }
     factory { GetLastPlayedDatesUseCase(get()) }
+
+    // Use cases - pontuação personalizada
+    factory { GetGameScoreSchemaUseCase(get()) }
+    factory { SaveGameScoreSchemaUseCase(get()) }
+    factory { GetDuplicableSchemasUseCase(get(), get()) }
+    factory { CalculateScoreFormulaUseCase() }
 
     // Use cases - jogadores
     factory { GetPlayersUseCase(get()) }
