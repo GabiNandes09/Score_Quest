@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -23,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +54,28 @@ fun SettingsScreen(
             viewModel.onJsonSelected(content)
         } else {
             viewModel.onJsonReadError("Não foi possível ler o arquivo selecionado.")
+        }
+    }
+
+    val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        val pending = state.pendingExport
+        if (uri != null && pending != null) {
+            val success = runCatching {
+                context.contentResolver.openOutputStream(uri)?.use { it.write(pending.json.toByteArray()) }
+            }.isSuccess
+
+            if (success) {
+                viewModel.onExportWritten(pending)
+            } else {
+                viewModel.onExportError("Não foi possível salvar o arquivo selecionado.")
+            }
+        }
+        viewModel.onExportLaunched()
+    }
+
+    LaunchedEffect(state.pendingExport) {
+        if (state.pendingExport != null) {
+            exportLauncher.launch("scorequest_jogos.json")
         }
     }
 
@@ -88,6 +112,16 @@ fun SettingsScreen(
                 Text(if (state.isImporting) "Importando..." else "Importar JSON")
             }
 
+            OutlinedButton(
+                onClick = viewModel::onExportRequested,
+                enabled = !state.isExporting,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Filled.FileUpload, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(if (state.isExporting) "Exportando..." else "Exportar JSON")
+            }
+
             Text(
                 text = "ScoreQuest — v1.0",
                 style = MaterialTheme.typography.bodySmall,
@@ -107,6 +141,28 @@ fun SettingsScreen(
             text = { Text(error) },
             confirmButton = {
                 TextButton(onClick = viewModel::dismissImportReadError) { Text("OK") }
+            }
+        )
+    }
+
+    state.exportSuccessMessage?.let { message ->
+        AlertDialog(
+            onDismissRequest = viewModel::dismissExportSuccess,
+            title = { Text("Exportação concluída") },
+            text = { Text(message) },
+            confirmButton = {
+                TextButton(onClick = viewModel::dismissExportSuccess) { Text("OK") }
+            }
+        )
+    }
+
+    state.exportError?.let { error ->
+        AlertDialog(
+            onDismissRequest = viewModel::dismissExportError,
+            title = { Text("Erro ao exportar") },
+            text = { Text(error) },
+            confirmButton = {
+                TextButton(onClick = viewModel::dismissExportError) { Text("OK") }
             }
         )
     }

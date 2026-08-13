@@ -2,6 +2,8 @@ package com.rogue.scorequest.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rogue.scorequest.domain.model.ExportResult
+import com.rogue.scorequest.domain.usecase.ExportGamesUseCase
 import com.rogue.scorequest.domain.usecase.GetThemePreferenceUseCase
 import com.rogue.scorequest.domain.usecase.ImportSeedGamesUseCase
 import com.rogue.scorequest.domain.usecase.SetThemePreferenceUseCase
@@ -14,7 +16,8 @@ import kotlinx.coroutines.launch
 class SettingsViewModel(
     getThemePreference: GetThemePreferenceUseCase,
     private val setThemePreference: SetThemePreferenceUseCase,
-    private val importSeedGames: ImportSeedGamesUseCase
+    private val importSeedGames: ImportSeedGamesUseCase,
+    private val exportGames: ExportGamesUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -51,5 +54,36 @@ class SettingsViewModel(
 
     fun dismissImportReadError() {
         _state.update { it.copy(importReadError = null) }
+    }
+
+    fun onExportRequested() {
+        if (_state.value.isExporting) return
+        viewModelScope.launch {
+            _state.update { it.copy(isExporting = true) }
+            val result = exportGames()
+            _state.update { it.copy(isExporting = false, pendingExport = result) }
+        }
+    }
+
+    fun onExportLaunched() {
+        _state.update { it.copy(pendingExport = null) }
+    }
+
+    fun onExportWritten(result: ExportResult) {
+        _state.update {
+            it.copy(exportSuccessMessage = "${result.gamesCount} jogo(s) e ${result.schemasCount} pontuação(ões) exportados.")
+        }
+    }
+
+    fun onExportError(message: String) {
+        _state.update { it.copy(exportError = message) }
+    }
+
+    fun dismissExportSuccess() {
+        _state.update { it.copy(exportSuccessMessage = null) }
+    }
+
+    fun dismissExportError() {
+        _state.update { it.copy(exportError = null) }
     }
 }

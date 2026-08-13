@@ -10,6 +10,7 @@ import com.rogue.scorequest.domain.usecase.CalculateScoreFormulaUseCase
 import com.rogue.scorequest.domain.usecase.CreatePlayerUseCase
 import com.rogue.scorequest.domain.usecase.DeleteGameSessionUseCase
 import com.rogue.scorequest.domain.usecase.DeletePlayerUseCase
+import com.rogue.scorequest.domain.usecase.ExportGamesUseCase
 import com.rogue.scorequest.domain.usecase.GetActivityHeatmapUseCase
 import com.rogue.scorequest.domain.usecase.GetDuplicableSchemasUseCase
 import com.rogue.scorequest.domain.usecase.GetDurationHistogramUseCase
@@ -103,4 +104,5 @@ val appModule = module {
     factory { GetThemePreferenceUseCase(get()) }
     factory { SetThemePreferenceUseCase(get()) }
     factory { ImportSeedGamesUseCase(get(), get()) }
+    factory { ExportGamesUseCase(get(), get()) }
 }

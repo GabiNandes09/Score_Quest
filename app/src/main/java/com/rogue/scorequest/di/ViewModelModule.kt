@@ -25,7 +25,7 @@ val viewModelModule = module {
     viewModel { (sessionId: String) -> SessionDetailViewModel(sessionId, get(), get(), get()) }
     viewModel { EditProfileViewModel(get(), get()) }
     viewModel { EditFavoritesViewModel(get(), get(), get()) }
-    viewModel { SettingsViewModel(get(), get(), get()) }
+    viewModel { SettingsViewModel(get(), get(), get(), get()) }
     viewModel { ManagePlayersViewModel(get(), get(), get()) }
     viewModel { (gameId: String) -> ScoreSchemaBuilderViewModel(gameId, get(), get(), get(), get(), get()) }
 }

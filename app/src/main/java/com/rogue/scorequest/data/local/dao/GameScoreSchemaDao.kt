@@ -21,4 +21,7 @@ interface GameScoreSchemaDao {
 
     @Query("SELECT * FROM game_score_schema WHERE deleted_at IS NULL AND type = 'COMPOSITE'")
     fun getAllCompositeSchemas(): Flow<List<GameScoreSchemaEntity>>
+
+    @Query("SELECT * FROM game_score_schema WHERE deleted_at IS NULL")
+    suspend fun getAllOnce(): List<GameScoreSchemaEntity>
 }

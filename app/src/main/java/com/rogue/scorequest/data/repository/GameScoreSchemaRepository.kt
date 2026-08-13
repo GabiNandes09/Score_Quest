@@ -21,4 +21,7 @@ class GameScoreSchemaRepository(
 
     fun getAllCompositeSchemas(): Flow<List<GameScoreSchema>> =
         gameScoreSchemaDao.getAllCompositeSchemas().map { list -> list.map { it.toDomain() } }
+
+    suspend fun getAllOnce(): List<GameScoreSchema> =
+        gameScoreSchemaDao.getAllOnce().map { it.toDomain() }
 }
