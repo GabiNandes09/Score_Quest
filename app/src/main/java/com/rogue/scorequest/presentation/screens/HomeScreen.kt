@@ -25,17 +25,22 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -50,8 +55,10 @@ import com.rogue.scorequest.domain.model.ActiveTimer
 import com.rogue.scorequest.domain.model.DayActivity
 import com.rogue.scorequest.domain.model.DurationBucket
 import com.rogue.scorequest.domain.model.GamePlayCount
+import com.rogue.scorequest.domain.model.HomeWidget
 import com.rogue.scorequest.domain.model.MonthSessionCount
 import com.rogue.scorequest.domain.model.Player
+import com.rogue.scorequest.domain.model.PlayerWinCount
 import com.rogue.scorequest.domain.model.SessionWithDetails
 import com.rogue.scorequest.domain.model.TimerStatus
 import com.rogue.scorequest.domain.model.hasNumberedPositionsForDisplay
@@ -87,6 +94,7 @@ fun HomeScreen(
     onResumeLiveMatchClick: (String) -> Unit = {},
     onNotificationsClick: () -> Unit = {},
     onGameClick: (String) -> Unit = {},
+    onPlayerClick: (String) -> Unit = {},
     viewModel: HomeViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -97,7 +105,9 @@ fun HomeScreen(
         onStartLiveMatchClick = onStartLiveMatchClick,
         onResumeLiveMatchClick = onResumeLiveMatchClick,
         onNotificationsClick = onNotificationsClick,
-        onGameClick = onGameClick
+        onGameClick = onGameClick,
+        onPlayerClick = onPlayerClick,
+        onWidgetVisibilityChanged = viewModel::onWidgetVisibilityChanged
     )
 }
 
@@ -108,8 +118,12 @@ private fun HomeContent(
     onStartLiveMatchClick: () -> Unit,
     onResumeLiveMatchClick: (String) -> Unit,
     onNotificationsClick: () -> Unit,
-    onGameClick: (String) -> Unit
+    onGameClick: (String) -> Unit,
+    onPlayerClick: (String) -> Unit,
+    onWidgetVisibilityChanged: (HomeWidget, Boolean) -> Unit
 ) {
+    var showWidgetSettings by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -126,8 +140,13 @@ private fun HomeContent(
                 text = if (state.displayName.isNotBlank()) "Olá, ${state.displayName}" else "Olá!",
                 style = MaterialTheme.typography.headlineSmall
             )
-            IconButton(onClick = onNotificationsClick) {
-                Icon(Icons.Filled.Notifications, contentDescription = null)
+            Row {
+                IconButton(onClick = onNotificationsClick) {
+                    Icon(Icons.Filled.Notifications, contentDescription = null)
+                }
+                IconButton(onClick = { showWidgetSettings = true }) {
+                    Icon(Icons.Filled.Settings, contentDescription = "Configurar gráficos")
+                }
             }
         }
 
@@ -157,16 +176,66 @@ private fun HomeContent(
             LastSessionCard(session = session, players = state.players)
         }
 
-        ActivityHeatmapCard(state.activityHeatmap)
+        if (HomeWidget.ACTIVITY_HEATMAP in state.visibleWidgets) {
+            ActivityHeatmapCard(state.activityHeatmap)
+        }
 
-        RankingCard(topGames = state.topGames, onGameClick = onGameClick)
+        if (HomeWidget.TOP_GAMES in state.visibleWidgets) {
+            RankingCard(topGames = state.topGames, onGameClick = onGameClick)
+        }
 
-        TimelineCard(state.sessionsByMonth)
+        if (HomeWidget.TOP_PLAYERS in state.visibleWidgets) {
+            WinsRankingCard(topPlayers = state.topPlayersByWins, onPlayerClick = onPlayerClick)
+        }
 
-        if (state.totalSessions >= MIN_SESSIONS_FOR_HISTOGRAM) {
+        if (HomeWidget.TIMELINE in state.visibleWidgets) {
+            TimelineCard(state.sessionsByMonth)
+        }
+
+        if (HomeWidget.DURATION_HISTOGRAM in state.visibleWidgets && state.totalSessions >= MIN_SESSIONS_FOR_HISTOGRAM) {
             HistogramCard(state.durationHistogram)
         }
     }
+
+    if (showWidgetSettings) {
+        WidgetSettingsDialog(
+            visibleWidgets = state.visibleWidgets,
+            onWidgetToggled = onWidgetVisibilityChanged,
+            onDismiss = { showWidgetSettings = false }
+        )
+    }
+}
+
+@Composable
+private fun WidgetSettingsDialog(
+    visibleWidgets: Set<HomeWidget>,
+    onWidgetToggled: (HomeWidget, Boolean) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Gráficos da Home") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                HomeWidget.entries.forEach { widget ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(widget.label)
+                        Switch(
+                            checked = widget in visibleWidgets,
+                            onCheckedChange = { checked -> onWidgetToggled(widget, checked) }
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Fechar") }
+        }
+    )
 }
 
 @Composable
@@ -383,6 +452,34 @@ private fun RankingCard(topGames: List<GamePlayCount>, onGameClick: (String) -> 
                             displayValue = "${game.playCount}x",
                             highlighted = index == 0,
                             onClick = { onGameClick(game.gameId) }
+                        )
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun WinsRankingCard(topPlayers: List<PlayerWinCount>, onPlayerClick: (String) -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(text = "Mais vitórias", style = MaterialTheme.typography.titleMedium)
+            if (topPlayers.isEmpty()) {
+                Text(
+                    text = "Jogue sua primeira partida pra ver seu ranking aqui",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                HorizontalBarChart(
+                    entries = topPlayers.mapIndexed { index, player ->
+                        BarChartEntry(
+                            label = player.playerName,
+                            value = player.wins.toFloat(),
+                            displayValue = "${player.wins}x",
+                            highlighted = index == 0,
+                            onClick = { onPlayerClick(player.playerId) }
                         )
                     }
                 )

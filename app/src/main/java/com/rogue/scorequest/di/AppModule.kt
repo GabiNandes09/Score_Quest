@@ -37,6 +37,7 @@ import com.rogue.scorequest.domain.usecase.GetSessionsByMonthUseCase
 import com.rogue.scorequest.domain.usecase.GetSessionsForGameUseCase
 import com.rogue.scorequest.domain.usecase.GetSessionsPagedUseCase
 import com.rogue.scorequest.domain.usecase.GetStreakUseCase
+import com.rogue.scorequest.domain.usecase.GetHomeWidgetVisibilityUseCase
 import com.rogue.scorequest.domain.usecase.GetThemePreferenceUseCase
 import com.rogue.scorequest.domain.usecase.ImportSeedGamesUseCase
 import com.rogue.scorequest.domain.usecase.PauseTimerUseCase
@@ -46,6 +47,7 @@ import com.rogue.scorequest.domain.usecase.SaveGameScoreSchemaUseCase
 import com.rogue.scorequest.domain.usecase.SaveGameSessionUseCase
 import com.rogue.scorequest.domain.usecase.SetFavoriteGameUseCase
 import com.rogue.scorequest.domain.usecase.SetLoanUseCase
+import com.rogue.scorequest.domain.usecase.SetHomeWidgetVisibleUseCase
 import com.rogue.scorequest.domain.usecase.SetThemePreferenceUseCase
 import com.rogue.scorequest.domain.usecase.StartTimerUseCase
 import com.rogue.scorequest.domain.usecase.UpdateGameSessionUseCase
@@ -116,6 +118,8 @@ val appModule = module {
     // Use cases - config
     factory { GetThemePreferenceUseCase(get()) }
     factory { SetThemePreferenceUseCase(get()) }
+    factory { GetHomeWidgetVisibilityUseCase(get()) }
+    factory { SetHomeWidgetVisibleUseCase(get()) }
     factory { ImportSeedGamesUseCase(get(), get()) }
     factory { ExportGamesUseCase(get(), get()) }
 

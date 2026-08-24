@@ -18,13 +18,15 @@ class GetHomeStatsUseCase(
         return combine(
             getStreak(),
             sessionRepository.getTopPlayedGames(TOP_GAMES_LIMIT),
+            sessionRepository.getTopPlayersByWins(TOP_PLAYERS_LIMIT),
             sessionRepository.getDurationMinutesSince(startOfWeekEpoch),
             sessionRepository.getTotalDurationMinutes()
-        ) { streak, topGames, weekMinutes, totalMinutes ->
+        ) { streak, topGames, topPlayersByWins, weekMinutes, totalMinutes ->
             HomeStats(
                 streakDays = streak.days,
                 isStreakActive = streak.isActive,
                 topGames = topGames,
+                topPlayersByWins = topPlayersByWins,
                 weekMinutes = weekMinutes ?: 0,
                 totalMinutes = totalMinutes ?: 0
             )
@@ -33,5 +35,6 @@ class GetHomeStatsUseCase(
 
     companion object {
         private const val TOP_GAMES_LIMIT = 5
+        private const val TOP_PLAYERS_LIMIT = 5
     }
 }

@@ -21,7 +21,7 @@ import org.koin.dsl.module
 
 val viewModelModule = module {
     viewModel { (sessionId: String, gameId: String, prefillDurationMinutes: String) -> AddSessionViewModel(sessionId, gameId, prefillDurationMinutes, get(), get(), get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { HomeViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { HomeViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { GamesViewModel(get(), get()) }
     viewModel { (gameId: String) -> GameDetailViewModel(gameId, get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { (gameId: String) -> LiveMatchViewModel(gameId, get(), get(), get(), get(), get(), get(), get()) }

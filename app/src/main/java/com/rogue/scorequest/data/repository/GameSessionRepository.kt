@@ -17,6 +17,7 @@ import com.rogue.scorequest.domain.model.GameStats
 import com.rogue.scorequest.domain.model.LibraryStatus
 import com.rogue.scorequest.domain.model.MonthSessionCount
 import com.rogue.scorequest.domain.model.PlayerStats
+import com.rogue.scorequest.domain.model.PlayerWinCount
 import com.rogue.scorequest.domain.model.ScoreEntry
 import com.rogue.scorequest.domain.model.SessionWithDetails
 import kotlinx.coroutines.flow.Flow
@@ -60,6 +61,8 @@ class GameSessionRepository(
             .map { pagingData -> pagingData.map { it.toDomain() } }
 
     fun getTopPlayedGames(limit: Int): Flow<List<GamePlayCount>> = gameSessionDao.getTopPlayedGames(limit)
+
+    fun getTopPlayersByWins(limit: Int): Flow<List<PlayerWinCount>> = scoreEntryDao.getTopPlayersByWins(limit)
 
     fun getTotalDurationMinutes(): Flow<Int?> = gameSessionDao.getTotalDurationMinutes()
 

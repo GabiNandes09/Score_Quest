@@ -105,7 +105,8 @@ fun AppNavigation() {
                     onRegisterSessionClick = { navController.navigate(Routes.AddSessionWizardGraph.createRoute()) },
                     onStartLiveMatchClick = { navController.navigate(Routes.LiveMatchChooseGame.route) },
                     onResumeLiveMatchClick = { gameId -> navController.navigate(Routes.LiveMatch.createRoute(gameId)) },
-                    onGameClick = { gameId -> navController.navigate(Routes.GameDetail.createRoute(gameId)) }
+                    onGameClick = { gameId -> navController.navigate(Routes.GameDetail.createRoute(gameId)) },
+                    onPlayerClick = { playerId -> navController.navigate(Routes.PlayerDetail.createRoute(playerId)) }
                 )
             }
 

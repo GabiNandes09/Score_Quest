@@ -2,15 +2,18 @@ package com.rogue.scorequest.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rogue.scorequest.domain.model.HomeWidget
 import com.rogue.scorequest.domain.usecase.GetActiveTimerUseCase
 import com.rogue.scorequest.domain.usecase.GetActivityHeatmapUseCase
 import com.rogue.scorequest.domain.usecase.GetDurationHistogramUseCase
 import com.rogue.scorequest.domain.usecase.GetHomeStatsUseCase
+import com.rogue.scorequest.domain.usecase.GetHomeWidgetVisibilityUseCase
 import com.rogue.scorequest.domain.usecase.GetPlayersUseCase
 import com.rogue.scorequest.domain.usecase.GetProfileUseCase
 import com.rogue.scorequest.domain.usecase.GetRecentSessionsUseCase
 import com.rogue.scorequest.domain.usecase.GetSessionCountUseCase
 import com.rogue.scorequest.domain.usecase.GetSessionsByMonthUseCase
+import com.rogue.scorequest.domain.usecase.SetHomeWidgetVisibleUseCase
 import com.rogue.scorequest.presentation.viewmodel.states.HomeState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,7 +30,9 @@ class HomeViewModel(
     getActivityHeatmap: GetActivityHeatmapUseCase,
     getSessionsByMonth: GetSessionsByMonthUseCase,
     getDurationHistogram: GetDurationHistogramUseCase,
-    getActiveTimer: GetActiveTimerUseCase
+    getActiveTimer: GetActiveTimerUseCase,
+    getHomeWidgetVisibility: GetHomeWidgetVisibilityUseCase,
+    private val setHomeWidgetVisible: SetHomeWidgetVisibleUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeState())
@@ -47,7 +52,8 @@ class HomeViewModel(
                     isStreakActive = stats.isStreakActive,
                     weekMinutes = stats.weekMinutes,
                     totalMinutes = stats.totalMinutes,
-                    topGames = stats.topGames
+                    topGames = stats.topGames,
+                    topPlayersByWins = stats.topPlayersByWins
                 )
             }
         }
@@ -85,6 +91,17 @@ class HomeViewModel(
             getActiveTimer().collect { timer ->
                 _state.value = _state.value.copy(activeTimer = timer)
             }
+        }
+        viewModelScope.launch {
+            getHomeWidgetVisibility().collect { visibleWidgets ->
+                _state.value = _state.value.copy(visibleWidgets = visibleWidgets)
+            }
+        }
+    }
+
+    fun onWidgetVisibilityChanged(widget: HomeWidget, visible: Boolean) {
+        viewModelScope.launch {
+            setHomeWidgetVisible(widget, visible)
         }
     }
 }
