@@ -33,10 +33,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rogue.scorequest.domain.model.ComparisonRule
 import com.rogue.scorequest.domain.model.Player
 import com.rogue.scorequest.domain.model.ScoreSchemaType
 import com.rogue.scorequest.domain.model.WinnerMode
 import com.rogue.scorequest.presentation.components.PlayerIdentityRow
+import com.rogue.scorequest.presentation.components.PositionBadge
 import com.rogue.scorequest.presentation.components.StatIconItem
 import com.rogue.scorequest.presentation.viewmodel.AddSessionViewModel
 import com.rogue.scorequest.ui.theme.Gold
@@ -55,7 +57,9 @@ fun ConfirmStep(
     val players by viewModel.players.collectAsStateWithLifecycle()
     val schema by viewModel.schema.collectAsStateWithLifecycle()
     val participants = players.filter { it.id in state.selectedPlayerIds }
-    val isComposite = schema?.type == ScoreSchemaType.COMPOSITE
+    val isComposite = schema?.type == ScoreSchemaType.COMPOSITE && !state.useSimpleEntry
+    val isRanking = schema?.type == ScoreSchemaType.RANKING
+    val hasRankingPoints = schema?.fields?.isNotEmpty() == true
 
     LaunchedEffect(state.saved) {
         if (state.saved) onSaved()
@@ -70,6 +74,7 @@ fun ConfirmStep(
     val canSave = !state.isSaving && when {
         isComposite && schema?.winnerMode == WinnerMode.MANUAL -> state.manualWinnerId != null
         isComposite && schema?.winnerMode == WinnerMode.AUTOMATIC -> state.pendingTieCandidateIds.isEmpty()
+        isRanking -> state.rankingOrder.size == participants.size
         else -> true
     }
 
@@ -117,31 +122,48 @@ fun ConfirmStep(
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(text = "Jogadores e pontuação", style = MaterialTheme.typography.titleMedium, color = Gold)
 
-                    if (isComposite) {
-                        when (schema?.winnerMode) {
-                            WinnerMode.MANUAL -> ManualWinnerList(
-                                participants = participants,
-                                selectedId = state.manualWinnerId,
-                                onSelected = viewModel::onManualWinnerSelected
-                            )
-                            WinnerMode.AUTOMATIC -> AutomaticWinnerList(
-                                participants = participants,
-                                winnerIds = state.automaticWinnerIds,
-                                totalFor = viewModel::calculateTotalFor
-                            )
-                            else -> participants.forEach { player ->
-                                PlayerIdentityRow(name = player.nickname, isWinner = false)
+                    when {
+                        isComposite -> {
+                            when (schema?.winnerMode) {
+                                WinnerMode.MANUAL -> ManualWinnerList(
+                                    participants = participants,
+                                    selectedId = state.manualWinnerId,
+                                    onSelected = viewModel::onManualWinnerSelected
+                                )
+                                WinnerMode.AUTOMATIC -> AutomaticWinnerList(
+                                    participants = participants,
+                                    winnerIds = state.automaticWinnerIds,
+                                    totalFor = viewModel::calculateTotalFor,
+                                    comparisonRule = schema?.formula?.comparisonRule ?: ComparisonRule.HIGHEST_WINS
+                                )
+                                else -> participants.forEach { player ->
+                                    PlayerIdentityRow(name = player.nickname, isWinner = false)
+                                }
                             }
                         }
-                    } else {
-                        participants.forEach { player ->
-                            val entry = state.scores[player.id]
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                PlayerIdentityRow(name = player.nickname, isWinner = entry?.isWinner == true)
-                                Text(text = entry?.totalScore.orEmpty())
+                        isRanking -> RankingConfirmList(
+                            order = state.rankingOrder,
+                            participants = participants,
+                            points = state.rankingPoints,
+                            showPoints = hasRankingPoints
+                        )
+                        else -> {
+                            val ordered = participants.sortedWith(
+                                compareByDescending<Player> { state.scores[it.id]?.isWinner == true }
+                                    .thenByDescending { state.scores[it.id]?.totalScore?.toIntOrNull() ?: Int.MIN_VALUE }
+                            )
+                            ordered.forEachIndexed { index, player ->
+                                val entry = state.scores[player.id]
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        PositionBadge(position = index + 1, modifier = Modifier.padding(end = 8.dp))
+                                        PlayerIdentityRow(name = player.nickname, isWinner = entry?.isWinner == true)
+                                    }
+                                    Text(text = entry?.totalScore.orEmpty())
+                                }
                             }
                         }
                     }
@@ -192,15 +214,51 @@ private fun ManualWinnerList(
 private fun AutomaticWinnerList(
     participants: List<Player>,
     winnerIds: Set<String>,
-    totalFor: (String) -> Int?
+    totalFor: (String) -> Int?,
+    comparisonRule: ComparisonRule
 ) {
-    participants.forEach { player ->
+    val byTotal = compareByDescending<Player> { it.id in winnerIds }.let { base ->
+        if (comparisonRule == ComparisonRule.LOWEST_WINS) {
+            base.thenBy { totalFor(it.id) ?: Int.MAX_VALUE }
+        } else {
+            base.thenByDescending { totalFor(it.id) ?: Int.MIN_VALUE }
+        }
+    }
+    participants.sortedWith(byTotal).forEachIndexed { index, player ->
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            PlayerIdentityRow(name = player.nickname, isWinner = player.id in winnerIds)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                PositionBadge(position = index + 1, modifier = Modifier.padding(end = 8.dp))
+                PlayerIdentityRow(name = player.nickname, isWinner = player.id in winnerIds)
+            }
             Text(text = "${totalFor(player.id) ?: "-"}")
+        }
+    }
+}
+
+@Composable
+private fun RankingConfirmList(
+    order: List<String>,
+    participants: List<Player>,
+    points: Map<String, String>,
+    showPoints: Boolean
+) {
+    order.forEachIndexed { index, playerId ->
+        val player = participants.find { it.id == playerId } ?: return@forEachIndexed
+        val position = index + 1
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                PositionBadge(position = position, modifier = Modifier.padding(end = 8.dp))
+                PlayerIdentityRow(name = player.nickname, isWinner = position == 1)
+            }
+            if (showPoints) {
+                Text(text = points[playerId].orEmpty())
+            }
         }
     }
 }

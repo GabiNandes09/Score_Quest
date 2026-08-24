@@ -4,9 +4,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,27 +33,32 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rogue.scorequest.R
 import com.rogue.scorequest.domain.model.ScoreSchemaType
 import com.rogue.scorequest.presentation.screens.AddEditGameScreen
+import com.rogue.scorequest.presentation.screens.AddEditPlayerScreen
 import com.rogue.scorequest.presentation.screens.EditFavoritesScreen
 import com.rogue.scorequest.presentation.screens.EditProfileScreen
 import com.rogue.scorequest.presentation.screens.GameDetailScreen
 import com.rogue.scorequest.presentation.screens.GamesScreen
 import com.rogue.scorequest.presentation.screens.HomeScreen
 import com.rogue.scorequest.presentation.screens.ManagePlayersScreen
+import com.rogue.scorequest.presentation.screens.PlayerDetailScreen
 import com.rogue.scorequest.presentation.screens.ProfileScreen
 import com.rogue.scorequest.presentation.screens.SessionDetailScreen
 import com.rogue.scorequest.presentation.screens.SettingsScreen
+import com.rogue.scorequest.presentation.screens.livematch.LiveMatchChooseGameScreen
+import com.rogue.scorequest.presentation.screens.livematch.LiveMatchScreen
 import com.rogue.scorequest.presentation.screens.scoreschema.ScoreSchemaBuilderScreen
 import com.rogue.scorequest.presentation.screens.wizard.ChooseGameStep
 import com.rogue.scorequest.presentation.screens.wizard.CompositeScoringStep
 import com.rogue.scorequest.presentation.screens.wizard.ConfirmStep
 import com.rogue.scorequest.presentation.screens.wizard.PlayersStep
+import com.rogue.scorequest.presentation.screens.wizard.RankingScoringStep
 import com.rogue.scorequest.presentation.screens.wizard.ScoringStep
 import com.rogue.scorequest.presentation.screens.wizard.SessionDataStep
 import com.rogue.scorequest.presentation.viewmodel.AddSessionViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-private val mainTabRoutes = setOf(Routes.Home.route, Routes.Games.route, Routes.Profile.route, Routes.Settings.route)
+private val mainTabRoutes = setOf(Routes.Home.route, Routes.Games.route, Routes.Profile.route, Routes.ManagePlayers.route)
 
 @Composable
 fun AppNavigation() {
@@ -98,6 +103,8 @@ fun AppNavigation() {
             composable(Routes.Home.route) {
                 HomeScreen(
                     onRegisterSessionClick = { navController.navigate(Routes.AddSessionWizardGraph.createRoute()) },
+                    onStartLiveMatchClick = { navController.navigate(Routes.LiveMatchChooseGame.route) },
+                    onResumeLiveMatchClick = { gameId -> navController.navigate(Routes.LiveMatch.createRoute(gameId)) },
                     onGameClick = { gameId -> navController.navigate(Routes.GameDetail.createRoute(gameId)) }
                 )
             }
@@ -113,13 +120,14 @@ fun AppNavigation() {
                 ProfileScreen(
                     onSessionClick = { sessionId -> navController.navigate(Routes.SessionDetail.createRoute(sessionId)) },
                     onEditProfileClick = { navController.navigate(Routes.EditProfile.route) },
-                    onEditFavoritesClick = { navController.navigate(Routes.EditFavorites.route) }
+                    onEditFavoritesClick = { navController.navigate(Routes.EditFavorites.route) },
+                    onSettingsClick = { navController.navigate(Routes.Settings.route) }
                 )
             }
 
             composable(Routes.Settings.route) {
                 SettingsScreen(
-                    onManagePlayersClick = { navController.navigate(Routes.ManagePlayers.route) }
+                    onBackClick = { navController.popBackStack() }
                 )
             }
 
@@ -135,6 +143,7 @@ fun AppNavigation() {
                     onRegisterSessionClick = {
                         navController.navigate(Routes.AddSessionWizardGraph.createRoute(gameId = gameId))
                     },
+                    onStartLiveMatchClick = { navController.navigate(Routes.LiveMatch.createRoute(gameId)) },
                     onSessionClick = { sessionId -> navController.navigate(Routes.SessionDetail.createRoute(sessionId)) },
                     onConfigureScoreClick = { navController.navigate(Routes.ScoreSchemaBuilder.createRoute(gameId)) }
                 )
@@ -187,12 +196,76 @@ fun AppNavigation() {
             }
 
             composable(Routes.ManagePlayers.route) {
-                ManagePlayersScreen(onBackClick = { navController.popBackStack() })
+                ManagePlayersScreen(
+                    onPlayerClick = { playerId -> navController.navigate(Routes.PlayerDetail.createRoute(playerId)) },
+                    onAddPlayerClick = { navController.navigate(Routes.AddEditPlayer.createRoute()) }
+                )
+            }
+
+            composable(
+                route = Routes.PlayerDetail.route,
+                arguments = listOf(navArgument("playerId") { type = NavType.StringType })
+            ) { entry ->
+                val playerId = entry.arguments?.getString("playerId").orEmpty()
+                PlayerDetailScreen(
+                    playerId = playerId,
+                    onBackClick = { navController.popBackStack() },
+                    onEditClick = { editPlayerId -> navController.navigate(Routes.AddEditPlayer.createRoute(editPlayerId)) }
+                )
+            }
+
+            composable(
+                route = Routes.AddEditPlayer.route,
+                arguments = listOf(navArgument("playerId") { type = NavType.StringType })
+            ) { entry ->
+                val playerId = entry.arguments?.getString("playerId") ?: Routes.AddEditPlayer.NEW_PLAYER
+                AddEditPlayerScreen(
+                    playerId = playerId,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable(Routes.LiveMatchChooseGame.route) {
+                LiveMatchChooseGameScreen(
+                    onGameSelected = { gameId ->
+                        navController.navigate(Routes.LiveMatch.createRoute(gameId)) {
+                            popUpTo(Routes.LiveMatchChooseGame.route) { inclusive = true }
+                        }
+                    },
+                    onCancel = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = Routes.LiveMatch.route,
+                arguments = listOf(navArgument("gameId") { type = NavType.StringType })
+            ) { entry ->
+                val gameId = entry.arguments?.getString("gameId").orEmpty()
+                LiveMatchScreen(
+                    gameId = gameId,
+                    onBack = { navController.popBackStack() },
+                    onFinished = { finishedGameId, minutes ->
+                        navController.navigate(
+                            Routes.AddSessionWizardGraph.createRoute(
+                                gameId = finishedGameId,
+                                prefillDurationMinutes = minutes.toString()
+                            )
+                        ) {
+                            popUpTo(Routes.Home.route)
+                        }
+                    },
+                    onGoToConflicting = { conflictingGameId ->
+                        navController.navigate(Routes.LiveMatch.createRoute(conflictingGameId)) {
+                            popUpTo(Routes.LiveMatch.route) { inclusive = true }
+                        }
+                    }
+                )
             }
 
             val wizardArgs: List<NamedNavArgument> = listOf(
                 navArgument("sessionId") { type = NavType.StringType },
-                navArgument("gameId") { type = NavType.StringType }
+                navArgument("gameId") { type = NavType.StringType },
+                navArgument("prefillDurationMinutes") { type = NavType.StringType }
             )
 
             navigation(
@@ -219,7 +292,13 @@ fun AppNavigation() {
                     SessionDataStep(
                         viewModel = viewModel,
                         onNext = { navController.navigate(routeForStep(Routes.WizardPlayers.route, viewModel)) },
-                        onBack = { navController.popBackStack() }
+                        onBack = {
+                            if (viewModel.isEditMode) {
+                                navController.popBackStack(Routes.AddSessionWizardGraph.route, true)
+                            } else {
+                                navController.popBackStack()
+                            }
+                        }
                     )
                 }
 
@@ -229,13 +308,14 @@ fun AppNavigation() {
                 ) { entry ->
                     val viewModel = wizardViewModel(entry, navController)
                     val schema by viewModel.schema.collectAsStateWithLifecycle()
+                    val state by viewModel.state.collectAsStateWithLifecycle()
                     PlayersStep(
                         viewModel = viewModel,
                         onNext = {
-                            val nextRoute = if (schema?.type == ScoreSchemaType.COMPOSITE) {
-                                Routes.WizardCompositeScoring.route
-                            } else {
-                                Routes.WizardScoring.route
+                            val nextRoute = when {
+                                schema?.type == ScoreSchemaType.COMPOSITE && !state.useSimpleEntry -> Routes.WizardCompositeScoring.route
+                                schema?.type == ScoreSchemaType.RANKING -> Routes.WizardRankingScoring.route
+                                else -> Routes.WizardScoring.route
                             }
                             navController.navigate(routeForStep(nextRoute, viewModel))
                         },
@@ -268,6 +348,18 @@ fun AppNavigation() {
                 }
 
                 composable(
+                    route = Routes.WizardRankingScoring.route,
+                    arguments = wizardArgs
+                ) { entry ->
+                    val viewModel = wizardViewModel(entry, navController)
+                    RankingScoringStep(
+                        viewModel = viewModel,
+                        onNext = { navController.navigate(routeForStep(Routes.WizardConfirm.route, viewModel)) },
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(
                     route = Routes.WizardConfirm.route,
                     arguments = wizardArgs
                 ) { entry ->
@@ -293,13 +385,16 @@ private fun wizardViewModel(
     val parentEntry = remember(entry) { navController.getBackStackEntry(Routes.AddSessionWizardGraph.route) }
     val sessionId = parentEntry.arguments?.getString("sessionId") ?: Routes.AddSessionWizardGraph.NEW_SESSION
     val gameId = parentEntry.arguments?.getString("gameId") ?: Routes.AddSessionWizardGraph.NO_GAME
-    return koinViewModel(viewModelStoreOwner = parentEntry) { parametersOf(sessionId, gameId) }
+    val prefillDurationMinutes = parentEntry.arguments?.getString("prefillDurationMinutes")
+        ?: Routes.AddSessionWizardGraph.NO_DURATION
+    return koinViewModel(viewModelStoreOwner = parentEntry) { parametersOf(sessionId, gameId, prefillDurationMinutes) }
 }
 
 private fun routeForStep(stepRoute: String, viewModel: AddSessionViewModel): String =
     stepRoute
         .replace("{sessionId}", viewModel.sessionId)
         .replace("{gameId}", viewModel.initialGameId)
+        .replace("{prefillDurationMinutes}", viewModel.initialDurationMinutes)
 
 @Composable
 private fun ScoreQuestBottomBar(
@@ -320,16 +415,16 @@ private fun ScoreQuestBottomBar(
             label = { Text(stringResource(R.string.nav_games)) }
         )
         NavigationBarItem(
+            selected = currentRoute == Routes.ManagePlayers.route,
+            onClick = { onNavigate(Routes.ManagePlayers.route) },
+            icon = { Icon(Icons.Filled.Groups, contentDescription = null) },
+            label = { Text(stringResource(R.string.nav_players)) }
+        )
+        NavigationBarItem(
             selected = currentRoute == Routes.Profile.route,
             onClick = { onNavigate(Routes.Profile.route) },
             icon = { Icon(Icons.Filled.Person, contentDescription = null) },
             label = { Text(stringResource(R.string.nav_profile)) }
-        )
-        NavigationBarItem(
-            selected = currentRoute == Routes.Settings.route,
-            onClick = { onNavigate(Routes.Settings.route) },
-            icon = { Icon(Icons.Filled.Settings, contentDescription = null) },
-            label = { Text(stringResource(R.string.nav_settings)) }
         )
     }
 }

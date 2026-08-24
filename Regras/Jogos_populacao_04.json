@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "description": "Quarta leva de seed do acervo do ScoreQuest. Mesmo formato do arquivo 'Jogos iniciais.json': cada entrada em 'games' segue domain/model/BoardGame.kt. IDs são slugs estáveis, não UUIDs reais — a rotina de seed deve gerar UUID de verdade na hora de inserir. Nenhum 'scoreSchemas' incluído nesta leva (combinado: fica para uma sessão futura, focada em pontuação personalizada).",
+  "games": [
+    {
+      "id": "seed-gears-of-war-board-game",
+      "name": "Gears of War: The Board Game",
+      "minPlayers": 1,
+      "maxPlayers": 4,
+      "avgDurationMinutes": 180,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/38_t.jpg",
+      "category": "Dungeon Crawler / Cooperativo",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Corey Konieczka",
+        "yearPublished": 2011,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/gears-of-war-the-board-game",
+        "notes": "Existe também 'Gears of War: The Card Game' (jogo de cartas separado, campanha narrativa) — cadastrado 'The Board Game' por ser a entrada mais conhecida/jogada. Sem complexidade BGG listada na página do Ludopedia; se vocês tinham o Card Game em mente, me avisem para trocar."
+      }
+    },
+    {
+      "id": "seed-deep-regrets",
+      "name": "Deep Regrets",
+      "minPlayers": 1,
+      "maxPlayers": 5,
+      "avgDurationMinutes": 150,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/65241_t.jpg",
+      "category": "Jogo de Cartas / Jogo de Dados",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Judson Cowan",
+        "yearPublished": 2025,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/deep-regrets",
+        "notes": "Duração no cadastro Ludopedia é 150 min totais (a Bravo Jogos anuncia como '~30 min por jogador', o que bate para até 5 jogadores). Suporta modo solo e cooperativo. Sem complexidade BGG listada na página."
+      }
+    },
+    {
+      "id": "seed-heat-pedal-to-the-metal",
+      "name": "Heat: Pedal to the Metal",
+      "minPlayers": 1,
+      "maxPlayers": 6,
+      "avgDurationMinutes": 60,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/37047_t.jpg",
+      "category": "Corrida / Gerenciamento de Mãos",
+      "weight": 2.2,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Asger Harding Granerud, Daniel Skjold Pedersen",
+        "yearPublished": 2022,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/heat-pedal-to-the-metal",
+        "notes": "Peso 2.2 é referência BGG (29/08/2025) citada na própria página do Ludopedia. Jogo base — não inclui as expansões (Championship, Heavy Rain, Wild Card, etc.)."
+      }
+    },
+    {
+      "id": "seed-azul",
+      "name": "Azul",
+      "minPlayers": 2,
+      "maxPlayers": 4,
+      "avgDurationMinutes": 45,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/14981_t.jpg",
+      "category": "Estratégia Abstrata / Quebra-Cabeça",
+      "weight": 1.76,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Michael Kiesling",
+        "yearPublished": 2017,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/azul",
+        "notes": "Vencedor do Spiel des Jahres 2018. Existem várias versões da série (Jardim da Rainha, Vitrais de Sintra, Pavilhão de Verão, Duel) cadastradas separadamente no Ludopedia — esta entrada é o Azul original/clássico. Peso 1.76 é referência BGG (04/05/2023)."
+      }
+    }
+  ],
+  "scoreSchemas": []
+}

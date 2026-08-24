@@ -3,6 +3,7 @@ package com.rogue.scorequest.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rogue.scorequest.domain.model.LibraryStatus
+import com.rogue.scorequest.domain.usecase.GetActiveTimerUseCase
 import com.rogue.scorequest.domain.usecase.GetGameDetailUseCase
 import com.rogue.scorequest.domain.usecase.GetGameScoreSchemaUseCase
 import com.rogue.scorequest.domain.usecase.GetGameStatsUseCase
@@ -22,6 +23,7 @@ class GameDetailViewModel(
     getGameStats: GetGameStatsUseCase,
     getSessionsForGame: GetSessionsForGameUseCase,
     getGameScoreSchema: GetGameScoreSchemaUseCase,
+    getActiveTimer: GetActiveTimerUseCase,
     private val updateLibraryStatusUseCase: UpdateLibraryStatusUseCase,
     private val setLoanUseCase: SetLoanUseCase,
     private val rateGameUseCase: RateGameUseCase
@@ -31,9 +33,17 @@ class GameDetailViewModel(
         getGameDetail(gameId),
         getGameStats(gameId),
         getSessionsForGame(gameId),
-        getGameScoreSchema(gameId)
-    ) { game, stats, sessions, schema ->
-        GameDetailState(isLoading = false, game = game, stats = stats, sessions = sessions, hasScoreSchema = schema != null)
+        getGameScoreSchema(gameId),
+        getActiveTimer()
+    ) { game, stats, sessions, schema, activeTimer ->
+        GameDetailState(
+            isLoading = false,
+            game = game,
+            stats = stats,
+            sessions = sessions,
+            hasScoreSchema = schema != null,
+            activeTimer = activeTimer
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), GameDetailState())
 
     fun onStatusChange(status: LibraryStatus) {

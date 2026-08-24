@@ -30,11 +30,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.rogue.scorequest.domain.model.hasNumberedPositionsForDisplay
+import com.rogue.scorequest.domain.model.orderedForDisplay
 import com.rogue.scorequest.presentation.components.PlayerIdentityRow
+import com.rogue.scorequest.presentation.components.PositionBadge
 import com.rogue.scorequest.presentation.components.StatIconItem
 import com.rogue.scorequest.presentation.viewmodel.SessionDetailViewModel
 import com.rogue.scorequest.ui.theme.Gold
@@ -109,14 +113,25 @@ fun SessionDetailScreen(
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(text = "Jogadores e pontuação", style = MaterialTheme.typography.titleMedium, color = Gold)
-                        current.scores.forEach { score ->
+                        val showPositions = current.scores.hasNumberedPositionsForDisplay()
+                        val orderedScores = current.scores.orderedForDisplay()
+                        orderedScores.forEachIndexed { index, score ->
                             val nickname = players.find { it.id == score.playerId }?.nickname ?: score.playerId
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                PlayerIdentityRow(name = nickname, isWinner = score.isWinner == true)
-                                Text(text = "${score.totalScore ?: "-"}")
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    if (showPositions) {
+                                        PositionBadge(position = index + 1, modifier = Modifier.padding(end = 8.dp))
+                                    }
+                                    PlayerIdentityRow(name = nickname, isWinner = score.isWinner == true)
+                                }
+                                if (showPositions) {
+                                    if (score.totalScore != null) Text(text = "${score.totalScore}")
+                                } else {
+                                    Text(text = "${score.totalScore ?: "-"}")
+                                }
                             }
                         }
                     }

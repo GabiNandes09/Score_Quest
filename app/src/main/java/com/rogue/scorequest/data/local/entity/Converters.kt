@@ -4,6 +4,7 @@ import androidx.room.TypeConverter
 import com.rogue.scorequest.domain.model.GameSource
 import com.rogue.scorequest.domain.model.LibraryStatus
 import com.rogue.scorequest.domain.model.ScoreSchemaType
+import com.rogue.scorequest.domain.model.TimerStatus
 import com.rogue.scorequest.domain.model.WinnerMode
 
 class Converters {
@@ -31,4 +32,10 @@ class Converters {
 
     @TypeConverter
     fun toWinnerMode(value: String): WinnerMode = WinnerMode.valueOf(value)
+
+    @TypeConverter
+    fun fromTimerStatus(value: TimerStatus): String = value.name
+
+    @TypeConverter
+    fun toTimerStatus(value: String): TimerStatus = TimerStatus.valueOf(value)
 }

@@ -1,6 +1,7 @@
 package com.rogue.scorequest.presentation.screens.wizard
 
 import android.app.DatePickerDialog
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -49,6 +50,12 @@ fun SessionDataStep(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
+
+    // Sem isso, o botão de voltar do sistema (gesto/hardware) ignora o onBack customizado
+    // e cai no pop padrão do NavController, que em modo edição aterrissa no
+    // WizardChooseGame — tela que só existe pra pular pra frente de novo (ver
+    // ChooseGameStep.kt), causando um flash visível dela antes de voltar aqui.
+    BackHandler(onBack = onBack)
 
     val captureFromCamera = rememberCameraCaptureAction(onCaptured = viewModel::onPhotoCaptured)
     val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->

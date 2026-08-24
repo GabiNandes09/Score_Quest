@@ -7,7 +7,9 @@ import java.time.LocalDateTime
 class UpdatePlayerUseCase(
     private val repository: PlayerRepository
 ) {
-    suspend operator fun invoke(player: Player, newNickname: String) {
-        repository.updatePlayer(player.copy(nickname = newNickname, updatedAt = LocalDateTime.now()))
+    suspend operator fun invoke(player: Player, newNickname: String, avatarPath: String?) {
+        repository.updatePlayer(
+            player.copy(nickname = newNickname, avatarPath = avatarPath, updatedAt = LocalDateTime.now())
+        )
     }
 }

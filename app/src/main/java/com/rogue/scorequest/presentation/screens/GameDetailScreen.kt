@@ -6,11 +6,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -67,6 +69,7 @@ fun GameDetailScreen(
     onBackClick: () -> Unit,
     onEditClick: () -> Unit,
     onRegisterSessionClick: () -> Unit,
+    onStartLiveMatchClick: () -> Unit,
     onSessionClick: (String) -> Unit,
     onConfigureScoreClick: () -> Unit,
     viewModel: GameDetailViewModel = koinViewModel(parameters = { parametersOf(gameId) })
@@ -207,6 +210,21 @@ fun GameDetailScreen(
                             )
                         }
                     }
+                }
+            }
+        }
+
+        if (state.activeTimer == null) {
+            item {
+                OutlinedButton(
+                    onClick = onStartLiveMatchClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Icon(Icons.Filled.Timer, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Iniciar partida ao vivo")
                 }
             }
         }

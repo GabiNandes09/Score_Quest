@@ -1,5 +1,6 @@
 package com.rogue.scorequest.presentation.viewmodel.states
 
+import com.rogue.scorequest.domain.model.ActiveTimer
 import com.rogue.scorequest.domain.model.DayActivity
 import com.rogue.scorequest.domain.model.DurationBucket
 import com.rogue.scorequest.domain.model.GamePlayCount
@@ -20,5 +21,6 @@ data class HomeState(
     val sessionsByMonth: List<MonthSessionCount> = emptyList(),
     val durationHistogram: List<DurationBucket> = emptyList(),
     val lastSession: SessionWithDetails? = null,
-    val players: List<Player> = emptyList()
+    val players: List<Player> = emptyList(),
+    val activeTimer: ActiveTimer? = null
 )

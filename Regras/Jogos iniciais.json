@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "description": "Seed inicial de jogos para popular o acervo do ScoreQuest. Cada entrada em 'games' segue o formato de domain/model/BoardGame.kt; cada entrada em 'scoreSchemas' segue domain/model/GameScoreSchema.kt (fields/formula) e referencia o jogo pelo campo 'gameId'. IDs aqui são slugs estáveis, não UUIDs reais — uma rotina de seed deve gerar UUID de verdade na hora de inserir e manter a referência gameId consistente entre as duas listas.",
+  "description": "Seed consolidado do acervo do ScoreQuest — unifica o arquivo original com as levas 'Jogos_populacao_02/03/04.json'. Cada entrada em 'games' segue o formato de domain/model/BoardGame.kt; cada entrada em 'scoreSchemas' segue domain/model/GameScoreSchema.kt (fields/formula) e referencia o jogo pelo campo 'gameId'. IDs aqui são slugs estáveis, não UUIDs reais — uma rotina de seed deve gerar UUID de verdade na hora de inserir e manter a referência gameId consistente entre as duas listas.",
   "games": [
     {
       "id": "seed-7-wonders",
@@ -17,6 +17,329 @@
         "yearPublished": 2010,
         "ludopediaUrl": "https://ludopedia.com.br/jogo/7-wonders",
         "notes": "Dados extraídos da página do Ludopedia em 11/08/2026. Peso 2.3 é referência de complexidade da BGG (não listado no Ludopedia, que não traz esse campo) — mesma convenção 'estilo BGG' já usada em BoardGame.weight."
+      }
+    },
+    {
+      "id": "seed-catan",
+      "name": "Catan: O Jogo",
+      "minPlayers": 3,
+      "maxPlayers": 4,
+      "avgDurationMinutes": 90,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/397_t.jpg",
+      "category": "Jogo de Estratégia / Civilização",
+      "weight": 2.29,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Klaus Teuber",
+        "yearPublished": 1995,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/catan-the-settlers-of-catan",
+        "notes": "Dados extraídos da página do Ludopedia em 11/08/2026. Jogadores 3-4 é o jogo base; expansão 'Mercadores e Bárbaros'/'5-6 Jogadores' amplia a faixa e não está modelada aqui. Peso 2.29 é referência BGG (14/05/2025) citada na própria página do Ludopedia."
+      }
+    },
+    {
+      "id": "seed-everdell",
+      "name": "Everdell",
+      "minPlayers": 1,
+      "maxPlayers": 4,
+      "avgDurationMinutes": 80,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/16788_t.jpg",
+      "category": "Alocação de Trabalhadores / Fantasia",
+      "weight": 2.80,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "James A. Wilson",
+        "yearPublished": 2018,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/everdell",
+        "notes": "Dados extraídos da página do Ludopedia em 11/08/2026 (jogo base 'Everdell', sem expansões). Peso 2.80 é referência BGG (04/05/2023) citada na própria página."
+      }
+    },
+    {
+      "id": "seed-war",
+      "name": "War: O Jogo da Estratégia",
+      "minPlayers": 3,
+      "maxPlayers": 6,
+      "avgDurationMinutes": 120,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/576_t.jpg",
+      "category": "Jogo de Guerra / Jogo de Dados",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Albert Lamorisse, Michael I. Levin",
+        "yearPublished": 1972,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/war",
+        "notes": "Clássico nacional da Grow, baseado em Risk. A página do Ludopedia não exibe complexidade BGG para este título (diferente de Catan/Everdell/Dixit) — campo 'weight' deixado null propositalmente; pode ser preenchido manualmente depois se encontrado."
+      }
+    },
+    {
+      "id": "seed-dixit",
+      "name": "Dixit",
+      "minPlayers": 3,
+      "maxPlayers": 6,
+      "avgDurationMinutes": 30,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/606_t.jpg",
+      "category": "Jogo de Cartas / Jogo Festivo",
+      "weight": 1.19,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Jean-Louis Roubira",
+        "yearPublished": 2008,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/dixit",
+        "notes": "Dados extraídos da página do Ludopedia em 11/08/2026 (jogo base, sem expansões como Odyssey/Mirrors). Peso 1.19 é referência BGG (17/02/2026)."
+      }
+    },
+    {
+      "id": "seed-telma",
+      "name": "Telma (3ª edição)",
+      "minPlayers": 4,
+      "maxPlayers": 8,
+      "avgDurationMinutes": 20,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/52872_t.jpg",
+      "category": "Jogo de Cartas / Jogo Festivo",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Pedro Ometto, Victor Fernandes",
+        "yearPublished": 2023,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/telma-3-edicao",
+        "notes": "Existem 3 edições cadastradas separadamente no Ludopedia (1ª, 2ª e 3ª); usei a 3ª por ser a versão atual em venda. Sem complexidade BGG listada (jogo nichado no mercado nacional, fora do radar do BGG). Se vocês tiverem a 1ª/2ª edição fisicamente, me avisem para trocar a entrada."
+      }
+    },
+    {
+      "id": "seed-trio",
+      "name": "Trio",
+      "minPlayers": 2,
+      "maxPlayers": 6,
+      "avgDurationMinutes": 15,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/50577_t.jpg",
+      "category": "Jogo de Cartas / Jogo Festivo",
+      "weight": 1.02,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "宮野 華也 (Kaya Miyano)",
+        "yearPublished": 2021,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/trio",
+        "notes": "Jogo da linha Pocket da PaperGames (originalmente 'Nana', no Japão). Complexidade não exibida na página do Ludopedia; peso 1.02 obtido direto do BGG."
+      }
+    },
+    {
+      "id": "seed-balde-de-caranguejo",
+      "name": "Balde de Caranguejo",
+      "minPlayers": 1,
+      "maxPlayers": 5,
+      "avgDurationMinutes": 20,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/71893_t.jpg",
+      "category": "Jogo de Cartas / Cooperativo",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Joka Jr",
+        "yearPublished": 2025,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/balde-de-caranguejo",
+        "notes": "Jogo nacional da Bucaneiros Jogos, cooperativo com comunicação limitada — bom candidato para testar o schema de pontuação cooperativa (winnerMode = NONE) quando essa parte for retomada. Sem complexidade BGG listada. Atenção: idade recomendada no Ludopedia é 14+, mesmo com descrição de marketing '(diversão para toda a família)' — vale conferir a caixa física antes de confirmar o campo de idade, caso o catálogo venha a ter esse campo no futuro."
+      }
+    },
+    {
+      "id": "seed-dungeon-drop",
+      "name": "Dungeon Drop",
+      "minPlayers": 1,
+      "maxPlayers": 4,
+      "avgDurationMinutes": 20,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/24555_t.jpg",
+      "category": "Dungeon Crawler / Jogo de Entrada",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Scott R. Smith",
+        "yearPublished": 2020,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/dungeon-drop",
+        "notes": "Dados extraídos da página do Ludopedia em 11/08/2026. Sem complexidade BGG listada na página. Jogo base, sem expansões (Dropped Too Deep, Trials & Tools, etc.)."
+      }
+    },
+    {
+      "id": "seed-munchkin",
+      "name": "Munchkin",
+      "minPlayers": 3,
+      "maxPlayers": 6,
+      "avgDurationMinutes": 90,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/334_t.jpg",
+      "category": "Jogo de Cartas",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Steve Jackson (I)",
+        "yearPublished": 2001,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/munchkin",
+        "notes": "Jogo base (Munchkin clássico), sem as dezenas de variações temáticas (Cthulhu, Zombies, Adventure Time, etc.) nem expansões. Sem complexidade BGG listada na página do Ludopedia."
+      }
+    },
+    {
+      "id": "seed-geeks-vs-trolls",
+      "name": "Geeks Vs Trolls",
+      "minPlayers": 1,
+      "maxPlayers": 6,
+      "avgDurationMinutes": 15,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/66495_t.jpg",
+      "category": "Jogo de Cartas / Cultura Pop",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Marcelo Vieira",
+        "yearPublished": 2026,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/geeks-vs-trolls",
+        "notes": "Jogo nacional independente, nascido de financiamento coletivo (Catarse). Sem complexidade BGG listada."
+      }
+    },
+    {
+      "id": "seed-claim",
+      "name": "Claim",
+      "minPlayers": 2,
+      "maxPlayers": 2,
+      "avgDurationMinutes": 25,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/16304_t.jpg",
+      "category": "Jogo de Cartas / Carteado",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Scott Almes",
+        "yearPublished": 2017,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/claim",
+        "notes": "Jogo base para 2 jogadores (combinável com a expansão 'Claim 2' para 3-4 jogadores, não modelada aqui). Sem complexidade BGG listada na página do Ludopedia."
+      }
+    },
+    {
+      "id": "seed-quarriors",
+      "name": "Quarriors!",
+      "minPlayers": 2,
+      "maxPlayers": 4,
+      "avgDurationMinutes": 30,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/112_t.jpg",
+      "category": "Jogo de Dados",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Mike Elliott, Eric M. Lang",
+        "yearPublished": 2011,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/quarriors",
+        "notes": "Jogo base de dice-building. Sem complexidade BGG listada na página do Ludopedia."
+      }
+    },
+    {
+      "id": "seed-batalha-dos-deuses",
+      "name": "Batalha dos Deuses",
+      "minPlayers": 2,
+      "maxPlayers": 5,
+      "avgDurationMinutes": 60,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/72874_t.jpg",
+      "category": "Jogo de Cartas / Jogo Assimétrico",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Carlos Ruas, Guilherme Bon",
+        "yearPublished": 2024,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/batalha-dos-deuses",
+        "notes": "Jogo nacional (Um Sábado Qualquer + Galápagos), assimétrico por design — cada jogador controla uma facção religiosa/mitológica diferente (Cristã, Grega, Nórdica, Egípcia, Yoruba). Sem complexidade BGG listada."
+      }
+    },
+    {
+      "id": "seed-ultimate-warriorz",
+      "name": "Ultimate Warriorz",
+      "minPlayers": 2,
+      "maxPlayers": 8,
+      "avgDurationMinutes": 30,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/7479_t.jpg",
+      "category": "Jogo de Cartas / Jogo Assimétrico",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Guillaume Blossier",
+        "yearPublished": 2011,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/ultimate-warriorz",
+        "notes": "Suporta até 8 jogadores (individual ou em equipes). Sem complexidade BGG listada na página do Ludopedia."
+      }
+    },
+    {
+      "id": "seed-star-realms",
+      "name": "Star Realms",
+      "minPlayers": 2,
+      "maxPlayers": 2,
+      "avgDurationMinutes": 20,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/4069_t.jpg",
+      "category": "Jogo de Cartas",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Robert Dougherty, Darwin Kastle",
+        "yearPublished": 2014,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/star-realms",
+        "notes": "Jogo base para 2 jogadores (o manual inclui regras para 4, mas o suporte oficial de jogadores cadastrado no Ludopedia é 2). Sem complexidade BGG listada na página."
+      }
+    },
+    {
+      "id": "seed-gears-of-war-board-game",
+      "name": "Gears of War: The Board Game",
+      "minPlayers": 1,
+      "maxPlayers": 4,
+      "avgDurationMinutes": 180,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/38_t.jpg",
+      "category": "Dungeon Crawler / Cooperativo",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Corey Konieczka",
+        "yearPublished": 2011,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/gears-of-war-the-board-game",
+        "notes": "Existe também 'Gears of War: The Card Game' (jogo de cartas separado, campanha narrativa) — cadastrado 'The Board Game' por ser a entrada mais conhecida/jogada. Sem complexidade BGG listada na página do Ludopedia; se vocês tinham o Card Game em mente, me avisem para trocar."
+      }
+    },
+    {
+      "id": "seed-deep-regrets",
+      "name": "Deep Regrets",
+      "minPlayers": 1,
+      "maxPlayers": 5,
+      "avgDurationMinutes": 150,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/65241_t.jpg",
+      "category": "Jogo de Cartas / Jogo de Dados",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Judson Cowan",
+        "yearPublished": 2025,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/deep-regrets",
+        "notes": "Duração no cadastro Ludopedia é 150 min totais (a Bravo Jogos anuncia como '~30 min por jogador', o que bate para até 5 jogadores). Suporta modo solo e cooperativo. Sem complexidade BGG listada na página."
+      }
+    },
+    {
+      "id": "seed-heat-pedal-to-the-metal",
+      "name": "Heat: Pedal to the Metal",
+      "minPlayers": 1,
+      "maxPlayers": 6,
+      "avgDurationMinutes": 60,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/37047_t.jpg",
+      "category": "Corrida / Gerenciamento de Mãos",
+      "weight": 2.2,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Asger Harding Granerud, Daniel Skjold Pedersen",
+        "yearPublished": 2022,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/heat-pedal-to-the-metal",
+        "notes": "Peso 2.2 é referência BGG (29/08/2025) citada na própria página do Ludopedia. Jogo base — não inclui as expansões (Championship, Heavy Rain, Wild Card, etc.)."
+      }
+    },
+    {
+      "id": "seed-azul",
+      "name": "Azul",
+      "minPlayers": 2,
+      "maxPlayers": 4,
+      "avgDurationMinutes": 45,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/14981_t.jpg",
+      "category": "Estratégia Abstrata / Quebra-Cabeça",
+      "weight": 1.76,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Michael Kiesling",
+        "yearPublished": 2017,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/azul",
+        "notes": "Vencedor do Spiel des Jahres 2018. Existem várias versões da série (Jardim da Rainha, Vitrais de Sintra, Pavilhão de Verão, Duel) cadastradas separadamente no Ludopedia — esta entrada é o Azul original/clássico. Peso 1.76 é referência BGG (04/05/2023)."
       }
     }
   ],
@@ -92,6 +415,274 @@
         "origem": "Extraído de Regras/7_wonders_regras_completas_64462.pdf, seção 'Somando os Pontos' (jogo base, sem expansões).",
         "porQueSubtotaisEPreCalculados": "A fórmula do app só soma valores com peso linear (Σ valor×peso). Duas categorias do 7 Wonders não são lineares: Tesouro é divisão inteira (moedas ÷ 3, resto descartado) e Estruturas Científicas usa quadrado do nº de símbolos iguais + bônus por trio de símbolos diferentes. Por isso cada campo pede o SUBTOTAL já calculado pelo jogador nessa categoria (igual à caderneta de pontuação oficial do jogo), não o valor bruto (nº de moedas, nº de símbolos etc).",
         "desempate": "Regra oficial: em empate, vence quem tem mais moedas no tesouro. O app não calcula desempate automático por critério secundário — ao aparecer o diálogo de empate, usar 'Escolher manualmente' seguindo essa regra."
+      }
+    },
+    {
+      "gameId": "seed-batalha-dos-deuses",
+      "type": "SIMPLE",
+      "winnerMode": "AUTOMATIC",
+      "fields": [],
+      "notes": {
+        "origem": "Regras/batalha_dos_deuses_regras_v_1_0_340892.pdf.",
+        "raciocinio": "Corrida até acumular 'Fiéis Convertidos' suficientes — o jogo termina assim que um jogador atinge a meta, então o total final de cada jogador já reflete quem venceu. Cabe direto na pontuação genérica Simples (número + maior vence)."
+      }
+    },
+    {
+      "gameId": "seed-catan",
+      "type": "COMPOSITE",
+      "winnerMode": "AUTOMATIC",
+      "fields": [
+        { "type": "NUMBER", "key": "aldeias", "label": "Aldeias (1 ponto cada)", "default": 0, "allowNegative": false },
+        { "type": "NUMBER", "key": "cidades", "label": "Cidades (2 pontos cada)", "default": 0, "allowNegative": false },
+        { "type": "BOOLEAN", "key": "maior_estrada", "label": "Maior Estrada", "pointsIfChecked": 2 },
+        { "type": "BOOLEAN", "key": "maior_exercito", "label": "Maior Exército", "pointsIfChecked": 2 },
+        { "type": "NUMBER", "key": "cartas_pontos_vitoria", "label": "Cartas de Ponto de Vitória compradas", "default": 0, "allowNegative": false }
+      ],
+      "formula": {
+        "terms": [
+          { "fieldKey": "aldeias", "weight": 1.0 },
+          { "fieldKey": "cidades", "weight": 2.0 },
+          { "fieldKey": "maior_estrada", "weight": 1.0 },
+          { "fieldKey": "maior_exercito", "weight": 1.0 },
+          { "fieldKey": "cartas_pontos_vitoria", "weight": 1.0 }
+        ],
+        "comparisonRule": "HIGHEST_WINS"
+      },
+      "notes": {
+        "origem": "Regras/catan_o_jogo_manual_de_regras_almanaque_d_200544.pdf, tabela de pontuação final.",
+        "raciocinio": "Todas as categorias já são lineares (contagem × valor fixo), sem necessidade de subtotal pré-calculado. Aldeia=1pt, Cidade=2pt, Maior Estrada/Maior Exército=2pt cada (modelados como campo Booleano com pointsIfChecked=2, weight 1.0 na fórmula), Carta de Ponto de Vitória=1pt cada. Jogo termina assim que alguém atinge 10 pontos."
+      }
+    },
+    {
+      "gameId": "seed-claim",
+      "type": "COMPOSITE",
+      "winnerMode": "AUTOMATIC",
+      "fields": [
+        { "type": "NUMBER", "key": "faccoes_conquistadas", "label": "Facções Conquistadas", "default": 0, "min": 0, "max": 5, "allowNegative": false }
+      ],
+      "formula": {
+        "terms": [
+          { "fieldKey": "faccoes_conquistadas", "weight": 1.0 }
+        ],
+        "comparisonRule": "HIGHEST_WINS"
+      },
+      "notes": {
+        "origem": "Regras/claim_manual_de_regras_em_portugues_130105.pdf, seção 'Final do jogo & pontuação'.",
+        "raciocinio": "Vence quem conquistar o voto de pelo menos 3 das 5 facções (maioria de cartas daquela facção na pilha de Pontuação). Jogo é sempre 2 jogadores, então 'mais facções conquistadas que o oponente' é equivalente a 'atingir 3 de 5' — um único campo numérico com maior valor vencendo já modela a regra corretamente sem precisar registrar facção por facção."
+      }
+    },
+    {
+      "gameId": "seed-deep-regrets",
+      "type": "COMPOSITE",
+      "winnerMode": "AUTOMATIC",
+      "fields": [
+        { "type": "NUMBER", "key": "peixes_na_mao", "label": "Peixes na Mão (valor já ajustado pela Loucura)", "default": 0, "allowNegative": false },
+        { "type": "NUMBER", "key": "peixes_empalhados", "label": "Peixes Empalhados (valor ajustado × multiplicador de empalhado)", "default": 0, "allowNegative": false },
+        { "type": "NUMBER", "key": "moedas", "label": "Moedas", "default": 0, "allowNegative": false },
+        { "type": "NUMBER", "key": "pontos_remorso", "label": "Pontos de Remorso (só desempate, não pontua)", "default": 0, "allowNegative": false },
+        { "type": "NUMBER", "key": "cartas_remorso", "label": "Cartas de Remorso (só desempate, não pontua)", "default": 0, "allowNegative": false }
+      ],
+      "formula": {
+        "terms": [
+          { "fieldKey": "peixes_na_mao", "weight": 1.0 },
+          { "fieldKey": "peixes_empalhados", "weight": 1.0 },
+          { "fieldKey": "moedas", "weight": 0.5 }
+        ],
+        "comparisonRule": "HIGHEST_WINS"
+      },
+      "notes": {
+        "origem": "Regras/deep_regrets_deep_regrets_manual_portugu_327230.pdf, seção 'Contando os Pontos' (p.21).",
+        "porQueSubtotaisEPreCalculados": "Peixes na Mão e Peixes Empalhados usam o Valor de cada peixe MODIFICADO pelo nível atual da Trilha da Loucura (tabela de conversão não-linear, e Empalhados ainda multiplicam por um modificador extra) — sem forma de reduzir a 'valor bruto × peso' fixo, então cada um vira um subtotal já calculado pelo jogador. Moedas já é linear (1 ponto a cada 2 moedas), então ficou como campo bruto com weight 0.5 em vez de subtotal.",
+        "desempate": "Regra oficial: em empate, vence quem tem menor total de Pontos de Remorso; se persistir, quem tem menos Cartas de Remorso; se ainda empatado, empate mesmo. Os dois campos de Remorso ficam de fora da fórmula (não pontuam), só como referência pra esse desempate manual."
+      }
+    },
+    {
+      "gameId": "seed-dixit",
+      "type": "SIMPLE",
+      "winnerMode": "AUTOMATIC",
+      "fields": [],
+      "notes": {
+        "origem": "Regras/dixit_manual_de_regras_da_versao_ga_3422.pdf.",
+        "raciocinio": "Pontuação acumulada rodada a rodada (regras de narrador/votação) e marcada no próprio tabuleiro físico durante a partida — não há categorias separadas pra somar no fim, só o total final. Cabe na pontuação genérica Simples."
+      }
+    },
+    {
+      "gameId": "seed-dungeon-drop",
+      "type": "COMPOSITE",
+      "winnerMode": "AUTOMATIC",
+      "fields": [
+        { "type": "NUMBER", "key": "ouro", "label": "Ouro (1 ponto cada)", "default": 0, "allowNegative": false },
+        { "type": "NUMBER", "key": "baus_pontos", "label": "Baús Destrancados (soma dos valores já rolados)", "default": 0, "allowNegative": false },
+        { "type": "NUMBER", "key": "gemas_pontos", "label": "Gemas (pontos conforme a carta de Aventura)", "default": 0, "allowNegative": false },
+        { "type": "NUMBER", "key": "monstros_pontos", "label": "Monstros (Troll=2, Dragão=8)", "default": 0, "allowNegative": false },
+        { "type": "NUMBER", "key": "equipe_pontos", "label": "Pontos de Equipe (modo 'Equipe Heroica', opcional)", "default": 0, "allowNegative": false }
+      ],
+      "formula": {
+        "terms": [
+          { "fieldKey": "ouro", "weight": 1.0 },
+          { "fieldKey": "baus_pontos", "weight": 1.0 },
+          { "fieldKey": "gemas_pontos", "weight": 1.0 },
+          { "fieldKey": "monstros_pontos", "weight": 1.0 },
+          { "fieldKey": "equipe_pontos", "weight": 1.0 }
+        ],
+        "comparisonRule": "HIGHEST_WINS"
+      },
+      "notes": {
+        "origem": "Regras/dungeon_drop_manual_de_regras_em_pt_br_180506.pdf, tabela de cubos (p.7) e seção 'Modo Equipe Heroica' (p.8).",
+        "porQueSubtotaisEPreCalculados": "O valor de Baús depende de uma rolagem de dado (aleatório, não uma fórmula) e o valor de Gemas depende da carta de Aventura sorteada (tabela de conversão que varia por partida) — nenhum dos dois é 'valor bruto × peso' fixo, então cada categoria recebe o subtotal já apurado pelo jogador, igual ao padrão usado em 7 Wonders.",
+        "desempate": "Regra oficial: em empate, vence quem tem maior Iniciativa entre os empatados (valor no canto da carta de Raça) — o app não calcula isso automaticamente, resolver manualmente no diálogo de empate."
+      }
+    },
+    {
+      "gameId": "seed-everdell",
+      "type": "COMPOSITE",
+      "winnerMode": "AUTOMATIC",
+      "fields": [
+        { "type": "NUMBER", "key": "pontos_base_cartas", "label": "Pontos base das cartas", "default": 0, "allowNegative": false },
+        { "type": "NUMBER", "key": "fichas_pontuacao", "label": "Fichas de Pontuação", "default": 0, "allowNegative": false },
+        { "type": "NUMBER", "key": "bonus_prosperidade", "label": "Bônus das cartas roxas de Prosperidade", "default": 0, "allowNegative": false },
+        { "type": "NUMBER", "key": "pontos_jornada", "label": "Pontos de Jornada", "default": 0, "allowNegative": false },
+        { "type": "NUMBER", "key": "eventos", "label": "Eventos realizados", "default": 0, "allowNegative": false }
+      ],
+      "formula": {
+        "terms": [
+          { "fieldKey": "pontos_base_cartas", "weight": 1.0 },
+          { "fieldKey": "fichas_pontuacao", "weight": 1.0 },
+          { "fieldKey": "bonus_prosperidade", "weight": 1.0 },
+          { "fieldKey": "pontos_jornada", "weight": 1.0 },
+          { "fieldKey": "eventos", "weight": 1.0 }
+        ],
+        "comparisonRule": "HIGHEST_WINS"
+      },
+      "notes": {
+        "origem": "Regras/everdell_manual_galapagos_172682.pdf, seção 'Fim da Partida' e exemplo de pontuação (p.14).",
+        "porQueSubtotaisEPreCalculados": "Cada categoria soma valores impressos em componentes diferentes (cartas, fichas, cartas de Prosperidade, trilha de Jornada, cartas de Evento) sem uma fórmula única — o próprio manual recomenda somar por categoria e depois tudo junto, exatamente o padrão de subtotal pré-calculado usado em 7 Wonders.",
+        "desempate": "Regra oficial: em empate, vence quem realizou mais Eventos; se persistir, quem tem mais recursos sobrando. O app não calcula isso automaticamente — resolver manualmente no diálogo de empate."
+      }
+    },
+    {
+      "gameId": "seed-gears-of-war-board-game",
+      "type": "COMPOSITE",
+      "winnerMode": "NONE",
+      "fields": [
+        { "type": "BOOLEAN", "key": "missao_cumprida", "label": "Missão cumprida" }
+      ],
+      "notes": {
+        "origem": "Regras/gears_of_war_the_bo_gears_of_war_the_board_game_173498.pdf — jogo 100% cooperativo (campanha de missões).",
+        "raciocinio": "Não há pontuação numérica nem vencedor individual — o grupo todo vence ou perde a missão junto. Modelado como campo Booleano preenchido igual para todos os jogadores (decisão confirmada com o usuário em 13/08/2026, mesma lógica aplicada ao Balde de Caranguejo). winnerMode NONE já garante que o app não tenta eleger um vencedor."
+      }
+    },
+    {
+      "gameId": "seed-geeks-vs-trolls",
+      "type": "COMPOSITE",
+      "winnerMode": "MANUAL",
+      "fields": [],
+      "notes": {
+        "origem": "Regras/geeks_vs_trolls_manual_oficial_322308.pdf, seção 'Fim de Jogo'.",
+        "raciocinio": "Eliminação direta — vence o último jogador que ainda tem Vidas. Não há pontuação numérica pra reduzir a uma fórmula, então usei winnerMode Manual: o app pergunta 'Quem venceu?' ao final, sem cálculo. Empate oficial é resolvido por quem tinha mais Habilidades, mas isso não é rastreado pelo app."
+      }
+    },
+    {
+      "gameId": "seed-heat-pedal-to-the-metal",
+      "type": "COMPOSITE",
+      "winnerMode": "MANUAL",
+      "fields": [],
+      "notes": {
+        "origem": "Regras/heat_pedal_to_the_m_manual_de_regras_basico_274207.pdf, seção sobre cruzar a linha de chegada.",
+        "raciocinio": "Jogo de corrida — vence quem cruza a linha de chegada primeiro (posição na pista, não pontuação). winnerMode Manual: o app pergunta 'Quem venceu?' ao final. Empate oficial (dois carros terminam na mesma rodada) é resolvido pela posição mais próxima do traçado da corrida, não rastreado pelo app."
+      }
+    },
+    {
+      "gameId": "seed-quarriors",
+      "type": "SIMPLE",
+      "winnerMode": "AUTOMATIC",
+      "fields": [],
+      "notes": {
+        "origem": "Regras/quarriors_regras_pt_br_galapagos_20380.pdf, seção 'Vencendo o Jogo'.",
+        "raciocinio": "Pontos de Glória acumulados num marcador físico durante a partida — o jogo termina assim que alguém atinge o total necessário para vencer. Cabe na pontuação genérica Simples (total final de Glória, maior vence)."
+      }
+    },
+    {
+      "gameId": "seed-trio",
+      "type": "SIMPLE",
+      "winnerMode": "AUTOMATIC",
+      "fields": [],
+      "notes": {
+        "origem": "Regras/trio_manual_de_regras_em_portugues_246451.pdf.",
+        "raciocinio": "Vence quem primeiro completa 3 trios (ou 2 trios conectados, ou o trio 7, dependendo do modo). Não há pontuação numérica formal, mas o número de trios conquistados por jogador serve como o 'placar' — quem atinge a condição de vitória primeiro naturalmente tem o maior total quando o jogo termina. Cabe na pontuação genérica Simples (registre o nº de trios conquistados por jogador)."
+      }
+    },
+    {
+      "gameId": "seed-balde-de-caranguejo",
+      "type": "COMPOSITE",
+      "winnerMode": "NONE",
+      "fields": [
+        { "type": "NUMBER", "key": "pontos_equipe", "label": "Pontos da Equipe (Modo Caranguejo Selvagem)", "default": 0, "allowNegative": false }
+      ],
+      "notes": {
+        "origem": "Regras/balde_de_caranguejo_manual_balde_de_caranguejo_306454.pdf.",
+        "raciocinio": "Jogo cooperativo — não existe pontuação individual, só um resultado de equipe. Preencha o MESMO valor no campo para todos os jogadores da partida (decisão confirmada com o usuário em 13/08/2026, dado que o app hoje só modela campos por jogador, não por sessão/grupo — ver lacuna da seção 8 do Documento de Produto sobre FieldScope/PER_SESSION, ainda não implementada).",
+        "comoPreencher": "Modo Caranguejo Selvagem: some os níveis das Missões concluídas (Missão nível 2 = 2 pontos, etc). Tabela de títulos oficial: até 4 = Aprendiz de Catador, 6-9 = Pegador de Casqueiro, 10-15 = Guardião do Mangue, 16-19 = Rei do Manguezal, 20+ = Oxi!. Modo Ligeiro: não gera pontuação (só vitória/derrota) — deixe o campo em 0 e registre o resultado fora do app, ou anote no campo de observações da partida."
+      }
+    },
+    {
+      "gameId": "seed-ultimate-warriorz",
+      "type": "SIMPLE",
+      "winnerMode": "AUTOMATIC",
+      "fields": [],
+      "notes": {
+        "origem": "Regras/ultimate_warriorz_regras_em_ingles_24531.pdf (manual em inglês), seção 'Victory'.",
+        "raciocinio": "Vence quem tiver mais Pontos de Popularidade (PP) ao final. Em caso de empate, vence quem tem mais eliminações (não modelado — resolver manualmente no diálogo de empate). Cabe na pontuação genérica Simples."
+      }
+    },
+    {
+      "gameId": "seed-star-realms",
+      "type": "COMPOSITE",
+      "winnerMode": "MANUAL",
+      "fields": [],
+      "notes": {
+        "origem": "Pesquisa web (PDF do manual sem camada de texto/escaneado, sem OCR disponível neste ambiente) — confirmado o padrão oficial via BGG/site oficial: cada jogador começa com 50 de Autoridade; vence quem reduzir a Autoridade do oponente a zero.",
+        "raciocinio": "Eliminação direta (Autoridade a zero), não uma pontuação a somar. winnerMode Manual: o app pergunta 'Quem venceu?' ao final, sem cálculo."
+      }
+    },
+    {
+      "gameId": "seed-telma",
+      "type": "SIMPLE",
+      "winnerMode": "AUTOMATIC",
+      "fields": [],
+      "notes": {
+        "origem": "Pesquisa web (PDF do manual sem camada de texto/escaneado, sem OCR disponível neste ambiente) — confirmado via site oficial da Devir: jogo disputado em 3 rodadas; quem fica sem cartas primeiro em cada rodada ganha 1 ponto (2 pontos na 3ª rodada); vence quem tiver mais pontos ao final.",
+        "raciocinio": "Pontuação acumulada por rodada, sem categorias — total final direto. Cabe na pontuação genérica Simples."
+      }
+    },
+    {
+      "gameId": "seed-war",
+      "type": "COMPOSITE",
+      "winnerMode": "MANUAL",
+      "fields": [],
+      "notes": {
+        "origem": "Pesquisa web (PDF do manual sem camada de texto/escaneado, sem OCR disponível neste ambiente) — confirmado o padrão oficial: cada jogador recebe uma carta de Missão secreta no início; vence quem cumprir sua missão primeiro e apresentar a carta aos demais.",
+        "raciocinio": "Vitória por objetivo secreto individual, não uma pontuação numérica. winnerMode Manual: o app pergunta 'Quem venceu?' ao final."
+      }
+    },
+    {
+      "gameId": "seed-azul",
+      "type": "SIMPLE",
+      "winnerMode": "AUTOMATIC",
+      "fields": [],
+      "notes": {
+        "origem": "Pesquisa web (PDF do manual sem camada de texto/escaneado, sem OCR disponível neste ambiente) — confirmado o padrão oficial: pontos por colocação de ladrilho na parede (adjacência) somados a um marcador físico a cada rodada, mais bônus de fim de jogo (linha completa=2, coluna completa=7, cor completa=10), menos penalidades da linha de chão.",
+        "raciocinio": "Toda a pontuação (rodada a rodada + bônus finais) já é somada no próprio marcador físico do jogo durante a partida — não há uma fórmula alternativa a reconstruir, só o total final. Cabe na pontuação genérica Simples. Empate oficial é resolvido por quem tem mais linhas horizontais completas, não rastreado pelo app."
+      }
+    },
+    {
+      "gameId": "seed-munchkin",
+      "type": "SIMPLE",
+      "winnerMode": "AUTOMATIC",
+      "fields": [],
+      "notes": {
+        "origem": "Pesquisa web (PDF do manual sem camada de texto/escaneado, sem OCR disponível neste ambiente) — confirmado o padrão oficial: vence quem chega ao Nível 10 primeiro, obrigatoriamente derrotando um monstro (não é permitido vender itens pra completar o último nível).",
+        "raciocinio": "Corrida até um nível-alvo (10), não uma pontuação acumulada por categorias — o jogo termina assim que alguém chega lá. Registre o nível final de cada jogador no campo genérico de pontuação (Simples, maior vence)."
       }
     }
   ]

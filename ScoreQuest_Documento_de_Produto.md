@@ -171,10 +171,14 @@ data class GameSession(
     val variantOrExpansion: String? = null,
     val photoUri: String? = null,
     val participantIds: List<String>,
+    val groupOutcome: GroupOutcome? = null, // preenchido quando o schema do jogo é cooperativo (winnerMode = NONE) — ver seção 8.5.2
+    val sharedFieldValues: String? = null,  // JSON blob {"fieldKey": valor} para campos de escopo PER_SESSION (preenchidos uma vez pela partida, não por jogador) — ver 8.3
     override val createdAt: LocalDateTime,
     override val updatedAt: LocalDateTime,
     override val deletedAt: LocalDateTime? = null
 ) : Auditable
+
+enum class GroupOutcome { WON, LOST, PARTIAL } // PARTIAL cobre jogos com "vitória parcial"/objetivos alternativos
 
 data class ScoreEntry(
     val sessionId: String,
@@ -478,7 +482,7 @@ Nota: `CASE` em SQL puro funciona no Room via `@RawQuery`/query customizada; se 
 A forma de lançar a pontuação depende de como aquele jogo foi configurado (schema simples vs. complexo — ver seção 8, "Criador de Pontuação Personalizado"), mas em todos os casos **o preenchimento acontece no mesmo aparelho**, passado entre os jogadores presentes fisicamente — não há lançamento remoto/distribuído entre celulares diferentes.
 
 - **Se o jogo tem um schema `SIMPLE`**: **uma tela só**, em formato de grid — jogadores nas colunas, campo único de pontuação nas linhas, todos preenchidos juntos na mesma tela. Vencedor = maior pontuação (regra fixa)
-- **Se o jogo tem um schema `COMPOSITE`**: **uma tela por jogador**, navegável em sequência (ex: swipe ou "Próximo jogador"), mas todas as telas preenchidas em seguida no mesmo aparelho, sem enviar/receber de outro dispositivo. Vencedor conforme a regra definida no schema (automática ou manual)
+- **Se o jogo tem um schema `COMPOSITE`**: **uma tela por jogador**, navegável em sequência (ex: swipe ou "Próximo jogador"), preenchendo os campos `PER_PLAYER`, mas todas as telas preenchidas em seguida no mesmo aparelho, sem enviar/receber de outro dispositivo. Vencedor conforme a regra definida no schema (automática ou manual) — ou, se `winnerMode = NONE` (cooperativo), um passo final único pergunta o **resultado da partida** (Vitória/Derrota/Parcial) e preenche eventuais campos `PER_SESSION`, sem repetir por jogador (ver 8.5.2)
 - V1: independente da complexidade, só existe o modo "pontuação genérica" (total numérico + vencedor) — a diferenciação simples/complexo só passa a existir a partir do V2, quando o schema por jogo é implementado
 
 **Etapa 5 — Confirmação**
@@ -615,13 +619,24 @@ Antes (ou em vez) de começar do zero, a tela inicial do construtor oferece "Dup
 | Múltipla escolha (`MULTI_SELECT`) | várias opções | Opcional (por opção) | Conquistas, bônus acumuláveis |
 | Texto (`TEXT`) | — | Não | Observações, anotações livres |
 
+**Escopo do campo**: além do tipo, todo campo tem um escopo — `PER_PLAYER` (padrão, preenchido uma vez por jogador, na tela individual de cada um) ou `PER_SESSION` (preenchido **uma única vez pela partida inteira**, não repetido por jogador). No construtor, ao configurar um campo, um toggle "Campo por jogador / Campo único da partida" define isso.
+
+`PER_SESSION` é o que permite capturar dados relevantes de jogos cooperativos sem forçá-los em cada jogador — ex: "Nível de dificuldade escolhido", "Cartas restantes no baralho ao final", "Número de epidemias reveladas" (Pandemic), "Turnos até o fim". Ver aplicação completa em 8.5.2.
+
 **Modelo de dados**
 
 ```kotlin
+enum class FieldScope { PER_PLAYER, PER_SESSION }
+
 sealed class ScoreFieldType {
+    abstract val key: String
+    abstract val label: String
+    abstract val scope: FieldScope
+
     data class NumberField(
-        val key: String,
-        val label: String,
+        override val key: String,
+        override val label: String,
+        override val scope: FieldScope = FieldScope.PER_PLAYER,
         val default: Int = 0,
         val min: Int? = null,
         val max: Int? = null,
@@ -629,26 +644,30 @@ sealed class ScoreFieldType {
     ) : ScoreFieldType()
 
     data class BooleanField(
-        val key: String,
-        val label: String,
+        override val key: String,
+        override val label: String,
+        override val scope: FieldScope = FieldScope.PER_PLAYER,
         val pointsIfChecked: Int? = null // null = só anotação, não pontua
     ) : ScoreFieldType()
 
     data class EnumField(
-        val key: String,
-        val label: String,
+        override val key: String,
+        override val label: String,
+        override val scope: FieldScope = FieldScope.PER_PLAYER,
         val options: List<EnumOption>
     ) : ScoreFieldType()
 
     data class MultiSelectField(
-        val key: String,
-        val label: String,
+        override val key: String,
+        override val label: String,
+        override val scope: FieldScope = FieldScope.PER_PLAYER,
         val options: List<EnumOption>
     ) : ScoreFieldType()
 
     data class TextField(
-        val key: String,
-        val label: String
+        override val key: String,
+        override val label: String,
+        override val scope: FieldScope = FieldScope.PER_PLAYER
     ) : ScoreFieldType()
 }
 
@@ -657,6 +676,8 @@ data class EnumOption(
     val points: Int = 0 // 0 = opção sem impacto direto no total
 )
 ```
+
+> Nota: campos `PER_SESSION` nunca entram na fórmula de pontuação individual (8.5, Opção B) — eles são puramente informativos/estatísticos, já que não faz sentido multiplicar "dificuldade escolhida" pelo total de um jogador específico. Ficam de fora do construtor de termos.
 
 ### 8.4 Fluxo de criação completo (visual, sem código)
 
@@ -710,9 +731,12 @@ O **peso do termo (`weight`) multiplica o valor acima** — para a maioria dos c
   - **Escolher o vencedor manualmente** → usuário seleciona um dos jogadores empatados como o vencedor único (útil pra jogos com regra de desempate própria, ex: "quem tem mais recursos guardados vence no empate", que o app não tem como calcular automaticamente sem essa regra estar modelada)
 - Esse aviso só aparece se houver empate de fato — no caso comum (totais diferentes), o vencedor é atribuído automaticamente sem nenhuma pergunta extra
 
-**Opção C — Sem vencedor**
-- Pra jogos cooperativos, onde não existe "quem ganhou" individualmente — só existe resultado do grupo (vitória/derrota coletiva)
-- Nesse caso, os campos numéricos continuam sendo preenchidos por jogador (estatística individual), mas nenhum vencedor é calculado ou perguntado
+**Opção C — Sem vencedor (cooperativo)**
+- Pra jogos cooperativos, onde não existe "quem ganhou" individualmente — só existe **resultado do grupo** (vitória/derrota/parcial, coletiva)
+- Ao escolher essa opção, o construtor pede que o criador **ative a pergunta de resultado da partida** — na tela de lançamento (7.3), depois que todos os jogadores preencherem seus campos individuais, aparece um passo final único (não repetido por jogador): *"Resultado da partida"*, com opções **Vitória**, **Derrota**, e opcionalmente **Parcial** (pra jogos com graus de sucesso, ex: "venceram mas perderam pontos de reputação")
+- Esse resultado é gravado em `GameSession.groupOutcome`, não em `ScoreEntry` (não é por jogador — é da partida como um todo)
+- Os campos individuais (`PER_PLAYER`) continuam sendo preenchidos normalmente, como estatística pessoal — só não geram um "vencedor" entre os jogadores
+- Campos `PER_SESSION` (8.3) — se o criador adicionou algum, como "Dificuldade escolhida" — são preenchidos junto com o resultado, numa tela única compartilhada, não repetida por jogador
 
 ```kotlin
 enum class WinnerMode { MANUAL, AUTOMATIC, NONE }
@@ -740,6 +764,18 @@ enum class ComparisonRule { HIGHEST_WINS, LOWEST_WINS }
 - Opcional — usuário pode pular direto pra "Salvar" sem testar, mas o botão fica sempre visível/sugerido nessa etapa final
 
 > **Nota de escopo**: esse construtor de fórmula (soma ponderada com pesos positivos/negativos por campo) é mais flexível do que o "modo simples" que eu tinha desenhado antes — ele já cobre subtração e multiplicação por peso constante, sem esperar o V3. Fórmulas envolvendo dois campos multiplicados entre si (ex: "campo A × campo B", ambos variáveis por partida) continuam fora de escopo por ora — não surgiu um caso de uso claro pra isso ainda, mas fica registrado como possível extensão futura se aparecer a necessidade.
+
+### 8.5.2 Dados extraíveis de jogos cooperativos
+
+Mesmo sem "vencedor individual", um jogo cooperativo bem configurado (campos `PER_PLAYER` + `PER_SESSION` + `groupOutcome`) gera estatísticas ricas:
+
+- **Taxa de vitória do grupo naquele jogo**: `% de GameSession com groupOutcome = WON` — o equivalente ao win rate individual, mas em nível de partida/grupo
+- **Evolução ao longo do tempo**: o grupo está vencendo mais nas partidas recentes do que nas antigas? (mesmo gráfico de linha da seção 7.1.3, filtrando por jogo cooperativo)
+- **Correlação com dificuldade**: se houver um campo `PER_SESSION` do tipo Escolha única (ex: "Dificuldade: Fácil/Normal/Difícil"), dá pra cruzar com `groupOutcome` — "vocês vencem 90% no Fácil, mas só 20% no Difícil"
+- **Contribuição individual sem ranking competitivo**: campos `PER_PLAYER` (ex: "objetivos concluídos", "ações realizadas") continuam gerando estatística pessoal (seção 7.1) sem transformar isso em "quem ganhou" — mantém o espírito cooperativo intacto, mas ainda alimenta curiosidade tipo "eu costumo ser quem mais cura doenças nesse jogo"
+- **Margem de vitória/derrota**: se um campo `PER_SESSION` numérico registrar algo como "cartas restantes no baralho" ou "turnos que sobraram", dá pra calcular o quão "apertada" cada partida foi — jogos vencidos por pouco vs. com folga
+
+Nenhum desses cálculos exige nova infraestrutura além do que já existe (`GameSession.groupOutcome`, `GameSession.sharedFieldValues`, `ScoreEntry.fieldValues`) — são queries agregadas adicionais sobre dados que já estariam sendo capturados.
 
 ### 8.6 Entidade do schema
 

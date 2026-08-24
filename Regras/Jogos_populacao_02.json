@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "description": "Segunda leva de seed do acervo do ScoreQuest. Mesmo formato do arquivo 'Jogos iniciais.json': cada entrada em 'games' segue domain/model/BoardGame.kt. IDs são slugs estáveis, não UUIDs reais — a rotina de seed deve gerar UUID de verdade na hora de inserir. Nenhum 'scoreSchemas' incluído nesta leva (combinado: fica para uma sessão futura, focada em pontuação personalizada).",
+  "games": [
+    {
+      "id": "seed-catan",
+      "name": "Catan: O Jogo",
+      "minPlayers": 3,
+      "maxPlayers": 4,
+      "avgDurationMinutes": 90,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/397_t.jpg",
+      "category": "Jogo de Estratégia / Civilização",
+      "weight": 2.29,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Klaus Teuber",
+        "yearPublished": 1995,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/catan-the-settlers-of-catan",
+        "notes": "Dados extraídos da página do Ludopedia em 11/08/2026. Jogadores 3-4 é o jogo base; expansão 'Mercadores e Bárbaros'/'5-6 Jogadores' amplia a faixa e não está modelada aqui. Peso 2.29 é referência BGG (14/05/2025) citada na própria página do Ludopedia."
+      }
+    },
+    {
+      "id": "seed-7-wonders",
+      "name": "7 Wonders",
+      "minPlayers": 2,
+      "maxPlayers": 7,
+      "avgDurationMinutes": 30,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/8_t.jpg",
+      "category": "Jogo de Cartas / Civilização",
+      "weight": 2.3,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Antoine Bauza",
+        "yearPublished": 2010,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/7-wonders",
+        "notes": "Reaproveitado do arquivo 'Jogos iniciais.json' (mesma entrada já validada anteriormente) — incluído aqui só para manter o batch de população num único JSON consolidado, conforme pedido."
+      }
+    },
+    {
+      "id": "seed-everdell",
+      "name": "Everdell",
+      "minPlayers": 1,
+      "maxPlayers": 4,
+      "avgDurationMinutes": 80,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/16788_t.jpg",
+      "category": "Alocação de Trabalhadores / Fantasia",
+      "weight": 2.80,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "James A. Wilson",
+        "yearPublished": 2018,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/everdell",
+        "notes": "Dados extraídos da página do Ludopedia em 11/08/2026 (jogo base 'Everdell', sem expansões). Peso 2.80 é referência BGG (04/05/2023) citada na própria página."
+      }
+    },
+    {
+      "id": "seed-war",
+      "name": "War: O Jogo da Estratégia",
+      "minPlayers": 3,
+      "maxPlayers": 6,
+      "avgDurationMinutes": 120,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/576_t.jpg",
+      "category": "Jogo de Guerra / Jogo de Dados",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Albert Lamorisse, Michael I. Levin",
+        "yearPublished": 1972,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/war",
+        "notes": "Clássico nacional da Grow, baseado em Risk. A página do Ludopedia não exibe complexidade BGG para este título (diferente de Catan/Everdell/Dixit) — campo 'weight' deixado null propositalmente; pode ser preenchido manualmente depois se encontrado."
+      }
+    },
+    {
+      "id": "seed-dixit",
+      "name": "Dixit",
+      "minPlayers": 3,
+      "maxPlayers": 6,
+      "avgDurationMinutes": 30,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/606_t.jpg",
+      "category": "Jogo de Cartas / Jogo Festivo",
+      "weight": 1.19,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Jean-Louis Roubira",
+        "yearPublished": 2008,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/dixit",
+        "notes": "Dados extraídos da página do Ludopedia em 11/08/2026 (jogo base, sem expansões como Odyssey/Mirrors). Peso 1.19 é referência BGG (17/02/2026)."
+      }
+    },
+    {
+      "id": "seed-telma",
+      "name": "Telma (3ª edição)",
+      "minPlayers": 4,
+      "maxPlayers": 8,
+      "avgDurationMinutes": 20,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/52872_t.jpg",
+      "category": "Jogo de Cartas / Jogo Festivo",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Pedro Ometto, Victor Fernandes",
+        "yearPublished": 2023,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/telma-3-edicao",
+        "notes": "Existem 3 edições cadastradas separadamente no Ludopedia (1ª, 2ª e 3ª); usei a 3ª por ser a versão atual em venda. Sem complexidade BGG listada (jogo nichado no mercado nacional, fora do radar do BGG). Se vocês tiverem a 1ª/2ª edição fisicamente, me avisem para trocar a entrada."
+      }
+    },
+    {
+      "id": "seed-trio",
+      "name": "Trio",
+      "minPlayers": 2,
+      "maxPlayers": 6,
+      "avgDurationMinutes": 15,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/50577_t.jpg",
+      "category": "Jogo de Cartas / Jogo Festivo",
+      "weight": 1.02,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "宮野 華也 (Kaya Miyano)",
+        "yearPublished": 2021,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/trio",
+        "notes": "Jogo da linha Pocket da PaperGames (originalmente 'Nana', no Japão). Complexidade não exibida na página do Ludopedia; peso 1.02 obtido direto do BGG."
+      }
+    },
+    {
+      "id": "seed-balde-de-caranguejo",
+      "name": "Balde de Caranguejo",
+      "minPlayers": 1,
+      "maxPlayers": 5,
+      "avgDurationMinutes": 20,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/71893_t.jpg",
+      "category": "Jogo de Cartas / Cooperativo",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Joka Jr",
+        "yearPublished": 2025,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/balde-de-caranguejo",
+        "notes": "Jogo nacional da Bucaneiros Jogos, cooperativo com comunicação limitada — bom candidato para testar o schema de pontuação cooperativa (winnerMode = NONE) quando essa parte for retomada. Sem complexidade BGG listada. Atenção: idade recomendada no Ludopedia é 14+, mesmo com descrição de marketing '(diversão para toda a família)' — vale conferir a caixa física antes de confirmar o campo de idade, caso o catálogo venha a ter esse campo no futuro."
+      }
+    }
+  ],
+  "scoreSchemas": []
+}

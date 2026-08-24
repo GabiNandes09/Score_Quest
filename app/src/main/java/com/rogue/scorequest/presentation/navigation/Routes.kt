@@ -30,17 +30,34 @@ sealed class Routes(
     data object EditFavorites : Routes("edit_favorites")
     data object ManagePlayers : Routes("manage_players")
 
-    data object AddSessionWizardGraph : Routes("add_session_wizard/{sessionId}/{gameId}") {
-        const val NEW_SESSION = "new"
-        const val NO_GAME = "none"
-        fun createRoute(sessionId: String = NEW_SESSION, gameId: String = NO_GAME) =
-            "add_session_wizard/$sessionId/$gameId"
+    data object PlayerDetail : Routes("player_detail/{playerId}") {
+        fun createRoute(playerId: String) = "player_detail/$playerId"
     }
 
-    data object WizardChooseGame : Routes("add_session_wizard/{sessionId}/{gameId}/choose_game")
-    data object WizardSessionData : Routes("add_session_wizard/{sessionId}/{gameId}/session_data")
-    data object WizardPlayers : Routes("add_session_wizard/{sessionId}/{gameId}/players")
-    data object WizardScoring : Routes("add_session_wizard/{sessionId}/{gameId}/scoring")
-    data object WizardCompositeScoring : Routes("add_session_wizard/{sessionId}/{gameId}/composite_scoring")
-    data object WizardConfirm : Routes("add_session_wizard/{sessionId}/{gameId}/confirm")
+    data object AddEditPlayer : Routes("add_edit_player/{playerId}") {
+        const val NEW_PLAYER = "new"
+        fun createRoute(playerId: String = NEW_PLAYER) = "add_edit_player/$playerId"
+    }
+
+    data object AddSessionWizardGraph : Routes("add_session_wizard/{sessionId}/{gameId}/{prefillDurationMinutes}") {
+        const val NEW_SESSION = "new"
+        const val NO_GAME = "none"
+        const val NO_DURATION = "0"
+        fun createRoute(sessionId: String = NEW_SESSION, gameId: String = NO_GAME, prefillDurationMinutes: String = NO_DURATION) =
+            "add_session_wizard/$sessionId/$gameId/$prefillDurationMinutes"
+    }
+
+    data object WizardChooseGame : Routes("add_session_wizard/{sessionId}/{gameId}/{prefillDurationMinutes}/choose_game")
+    data object WizardSessionData : Routes("add_session_wizard/{sessionId}/{gameId}/{prefillDurationMinutes}/session_data")
+    data object WizardPlayers : Routes("add_session_wizard/{sessionId}/{gameId}/{prefillDurationMinutes}/players")
+    data object WizardScoring : Routes("add_session_wizard/{sessionId}/{gameId}/{prefillDurationMinutes}/scoring")
+    data object WizardCompositeScoring : Routes("add_session_wizard/{sessionId}/{gameId}/{prefillDurationMinutes}/composite_scoring")
+    data object WizardRankingScoring : Routes("add_session_wizard/{sessionId}/{gameId}/{prefillDurationMinutes}/ranking_scoring")
+    data object WizardConfirm : Routes("add_session_wizard/{sessionId}/{gameId}/{prefillDurationMinutes}/confirm")
+
+    data object LiveMatch : Routes("live_match/{gameId}") {
+        fun createRoute(gameId: String) = "live_match/$gameId"
+    }
+
+    data object LiveMatchChooseGame : Routes("live_match_choose_game")
 }

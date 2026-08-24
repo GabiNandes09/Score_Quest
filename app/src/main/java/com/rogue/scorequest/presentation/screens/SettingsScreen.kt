@@ -11,11 +11,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -38,7 +40,7 @@ import org.koin.androidx.compose.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onManagePlayersClick: () -> Unit,
+    onBackClick: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -80,7 +82,16 @@ fun SettingsScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Configurações") }) }
+        topBar = {
+            TopAppBar(
+                title = { Text("Configurações") },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                    }
+                }
+            )
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -96,10 +107,6 @@ fun SettingsScreen(
             ) {
                 Text("Tema escuro")
                 Switch(checked = state.isDarkTheme, onCheckedChange = viewModel::onThemeToggled)
-            }
-
-            TextButton(onClick = onManagePlayersClick) {
-                Text("Gerenciar jogadores locais")
             }
 
             OutlinedButton(

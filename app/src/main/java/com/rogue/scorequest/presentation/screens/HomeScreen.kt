@@ -30,9 +30,14 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,12 +46,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rogue.scorequest.domain.model.ActiveTimer
 import com.rogue.scorequest.domain.model.DayActivity
 import com.rogue.scorequest.domain.model.DurationBucket
 import com.rogue.scorequest.domain.model.GamePlayCount
 import com.rogue.scorequest.domain.model.MonthSessionCount
 import com.rogue.scorequest.domain.model.Player
 import com.rogue.scorequest.domain.model.SessionWithDetails
+import com.rogue.scorequest.domain.model.TimerStatus
+import com.rogue.scorequest.domain.model.hasNumberedPositionsForDisplay
+import com.rogue.scorequest.domain.model.orderedForDisplay
 import com.rogue.scorequest.presentation.components.ActivityHeatmap
 import com.rogue.scorequest.presentation.components.BarChartEntry
 import com.rogue.scorequest.presentation.components.GameCoverImage
@@ -54,6 +63,7 @@ import com.rogue.scorequest.presentation.components.HorizontalBarChart
 import com.rogue.scorequest.presentation.components.LineChart
 import com.rogue.scorequest.presentation.components.LineChartEntry
 import com.rogue.scorequest.presentation.components.PlayerIdentityRow
+import com.rogue.scorequest.presentation.components.PositionBadge
 import com.rogue.scorequest.presentation.components.StatIconItem
 import com.rogue.scorequest.presentation.components.VerticalBarChart
 import com.rogue.scorequest.presentation.components.VerticalBarEntry
@@ -61,8 +71,10 @@ import com.rogue.scorequest.presentation.viewmodel.HomeViewModel
 import com.rogue.scorequest.presentation.viewmodel.states.HomeState
 import com.rogue.scorequest.ui.theme.Gold
 import com.rogue.scorequest.utils.formatDuration
+import com.rogue.scorequest.utils.formatElapsed
 import com.rogue.scorequest.utils.toRelativeDayString
 import com.rogue.scorequest.utils.toShortMonthLabel
+import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 
 private const val MIN_SESSIONS_FOR_HISTOGRAM = 5
@@ -71,6 +83,8 @@ private const val MIN_MONTHS_FOR_TIMELINE = 3
 @Composable
 fun HomeScreen(
     onRegisterSessionClick: () -> Unit = {},
+    onStartLiveMatchClick: () -> Unit = {},
+    onResumeLiveMatchClick: (String) -> Unit = {},
     onNotificationsClick: () -> Unit = {},
     onGameClick: (String) -> Unit = {},
     viewModel: HomeViewModel = koinViewModel()
@@ -80,6 +94,8 @@ fun HomeScreen(
     HomeContent(
         state = state,
         onRegisterSessionClick = onRegisterSessionClick,
+        onStartLiveMatchClick = onStartLiveMatchClick,
+        onResumeLiveMatchClick = onResumeLiveMatchClick,
         onNotificationsClick = onNotificationsClick,
         onGameClick = onGameClick
     )
@@ -89,6 +105,8 @@ fun HomeScreen(
 private fun HomeContent(
     state: HomeState,
     onRegisterSessionClick: () -> Unit,
+    onStartLiveMatchClick: () -> Unit,
+    onResumeLiveMatchClick: (String) -> Unit,
     onNotificationsClick: () -> Unit,
     onGameClick: (String) -> Unit
 ) {
@@ -113,7 +131,19 @@ private fun HomeContent(
             }
         }
 
+        state.activeTimer?.let { timer ->
+            ActiveTimerBanner(timer = timer, onClick = { onResumeLiveMatchClick(timer.gameId) })
+        }
+
         RegisterSessionButton(onClick = onRegisterSessionClick)
+
+        if (state.activeTimer == null) {
+            OutlinedButton(onClick = onStartLiveMatchClick, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Filled.Timer, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Iniciar partida ao vivo")
+            }
+        }
 
         HomeStatsCard(
             totalSessions = state.totalSessions,
@@ -154,6 +184,42 @@ private fun RegisterSessionButton(onClick: () -> Unit) {
         Icon(Icons.Filled.Casino, contentDescription = null, tint = Color.Black)
         Spacer(modifier = Modifier.width(8.dp))
         Text(text = "Registrar partida", color = Color.Black, fontWeight = FontWeight.SemiBold)
+    }
+}
+
+@Composable
+private fun ActiveTimerBanner(timer: ActiveTimer, onClick: () -> Unit) {
+    var nowMillis by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(timer.status) {
+        while (timer.status == TimerStatus.RUNNING) {
+            nowMillis = System.currentTimeMillis()
+            delay(1000)
+        }
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column {
+            Text(
+                text = if (timer.status == TimerStatus.PAUSED) "Partida em pausa" else "Partida em andamento",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(text = timer.gameName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        }
+        Text(
+            text = formatElapsed(timer.elapsedMillis(nowMillis)),
+            style = MaterialTheme.typography.titleLarge,
+            color = Gold
+        )
     }
 }
 
@@ -262,15 +328,26 @@ private fun LastSessionParticipantsPage(session: SessionWithDetails, players: Li
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        session.scores.forEach { score ->
+        val showPositions = session.scores.hasNumberedPositionsForDisplay()
+        val orderedScores = session.scores.orderedForDisplay()
+        orderedScores.forEachIndexed { index, score ->
             val nickname = players.find { it.id == score.playerId }?.nickname ?: score.playerId
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                PlayerIdentityRow(name = nickname, isWinner = score.isWinner == true)
-                Text(text = "${score.totalScore ?: "-"}", style = MaterialTheme.typography.bodyMedium)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (showPositions) {
+                        PositionBadge(position = index + 1, modifier = Modifier.padding(end = 8.dp))
+                    }
+                    PlayerIdentityRow(name = nickname, isWinner = score.isWinner == true)
+                }
+                if (showPositions) {
+                    if (score.totalScore != null) Text(text = "${score.totalScore}", style = MaterialTheme.typography.bodyMedium)
+                } else {
+                    Text(text = "${score.totalScore ?: "-"}", style = MaterialTheme.typography.bodyMedium)
+                }
             }
         }
     }

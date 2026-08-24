@@ -1,5 +1,6 @@
 package com.rogue.scorequest.di
 
+import com.rogue.scorequest.data.repository.ActiveTimerRepository
 import com.rogue.scorequest.data.repository.BoardGameRepository
 import com.rogue.scorequest.data.repository.GameScoreSchemaRepository
 import com.rogue.scorequest.data.repository.GameSessionRepository
@@ -7,10 +8,14 @@ import com.rogue.scorequest.data.repository.PlayerRepository
 import com.rogue.scorequest.data.repository.ProfileRepository
 import com.rogue.scorequest.domain.usecase.AddUserGameUseCase
 import com.rogue.scorequest.domain.usecase.CalculateScoreFormulaUseCase
+import com.rogue.scorequest.domain.usecase.CancelTimerUseCase
+import com.rogue.scorequest.domain.usecase.ClearActiveTimerForGameUseCase
 import com.rogue.scorequest.domain.usecase.CreatePlayerUseCase
 import com.rogue.scorequest.domain.usecase.DeleteGameSessionUseCase
 import com.rogue.scorequest.domain.usecase.DeletePlayerUseCase
 import com.rogue.scorequest.domain.usecase.ExportGamesUseCase
+import com.rogue.scorequest.domain.usecase.FinishTimerUseCase
+import com.rogue.scorequest.domain.usecase.GetActiveTimerUseCase
 import com.rogue.scorequest.domain.usecase.GetActivityHeatmapUseCase
 import com.rogue.scorequest.domain.usecase.GetDuplicableSchemasUseCase
 import com.rogue.scorequest.domain.usecase.GetDurationHistogramUseCase
@@ -21,6 +26,8 @@ import com.rogue.scorequest.domain.usecase.GetGameStatsUseCase
 import com.rogue.scorequest.domain.usecase.GetGamesUseCase
 import com.rogue.scorequest.domain.usecase.GetHomeStatsUseCase
 import com.rogue.scorequest.domain.usecase.GetLastPlayedDatesUseCase
+import com.rogue.scorequest.domain.usecase.GetPlayerStatsUseCase
+import com.rogue.scorequest.domain.usecase.GetPlayerUseCase
 import com.rogue.scorequest.domain.usecase.GetPlayersUseCase
 import com.rogue.scorequest.domain.usecase.GetProfileUseCase
 import com.rogue.scorequest.domain.usecase.GetRecentSessionsUseCase
@@ -32,12 +39,15 @@ import com.rogue.scorequest.domain.usecase.GetSessionsPagedUseCase
 import com.rogue.scorequest.domain.usecase.GetStreakUseCase
 import com.rogue.scorequest.domain.usecase.GetThemePreferenceUseCase
 import com.rogue.scorequest.domain.usecase.ImportSeedGamesUseCase
+import com.rogue.scorequest.domain.usecase.PauseTimerUseCase
 import com.rogue.scorequest.domain.usecase.RateGameUseCase
+import com.rogue.scorequest.domain.usecase.ResumeTimerUseCase
 import com.rogue.scorequest.domain.usecase.SaveGameScoreSchemaUseCase
 import com.rogue.scorequest.domain.usecase.SaveGameSessionUseCase
 import com.rogue.scorequest.domain.usecase.SetFavoriteGameUseCase
 import com.rogue.scorequest.domain.usecase.SetLoanUseCase
 import com.rogue.scorequest.domain.usecase.SetThemePreferenceUseCase
+import com.rogue.scorequest.domain.usecase.StartTimerUseCase
 import com.rogue.scorequest.domain.usecase.UpdateGameSessionUseCase
 import com.rogue.scorequest.domain.usecase.UpdateLibraryStatusUseCase
 import com.rogue.scorequest.domain.usecase.UpdatePlayerUseCase
@@ -53,6 +63,7 @@ val appModule = module {
     single { GameSessionRepository(get(), get(), get()) }
     single { ProfileRepository(get(), get()) }
     single { GameScoreSchemaRepository(get()) }
+    single { ActiveTimerRepository(get()) }
 
     // Use cases - jogos/estante
     factory { GetGamesUseCase(get()) }
@@ -74,9 +85,11 @@ val appModule = module {
 
     // Use cases - jogadores
     factory { GetPlayersUseCase(get()) }
+    factory { GetPlayerUseCase(get()) }
     factory { CreatePlayerUseCase(get()) }
     factory { UpdatePlayerUseCase(get()) }
     factory { DeletePlayerUseCase(get()) }
+    factory { GetPlayerStatsUseCase(get()) }
 
     // Use cases - partidas
     factory { SaveGameSessionUseCase(get()) }
@@ -105,4 +118,13 @@ val appModule = module {
     factory { SetThemePreferenceUseCase(get()) }
     factory { ImportSeedGamesUseCase(get(), get()) }
     factory { ExportGamesUseCase(get(), get()) }
+
+    // Use cases - cronômetro de partida ao vivo
+    factory { GetActiveTimerUseCase(get()) }
+    factory { StartTimerUseCase(get()) }
+    factory { PauseTimerUseCase(get()) }
+    factory { ResumeTimerUseCase(get()) }
+    factory { CancelTimerUseCase(get()) }
+    factory { FinishTimerUseCase(get()) }
+    factory { ClearActiveTimerForGameUseCase(get()) }
 }

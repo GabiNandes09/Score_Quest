@@ -37,10 +37,20 @@ fun ChooseGameStep(
     onCancel: () -> Unit
 ) {
     val games by viewModel.games.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     var query by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         if (viewModel.consumeAutoAdvance()) {
+            onNext()
+        }
+    }
+
+    // Editando uma partida já salva: o jogo não pode ser trocado, então pula essa tela
+    // assim que o jogo da sessão terminar de carregar (async, por isso reage ao estado
+    // em vez de um disparo único como o consumeAutoAdvance acima).
+    LaunchedEffect(state.selectedGameId, state.isEditMode) {
+        if (state.isEditMode && state.selectedGameId != null) {
             onNext()
         }
     }

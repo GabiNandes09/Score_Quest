@@ -16,12 +16,15 @@ import com.rogue.scorequest.domain.model.GameSession
 import com.rogue.scorequest.domain.model.GameStats
 import com.rogue.scorequest.domain.model.LibraryStatus
 import com.rogue.scorequest.domain.model.MonthSessionCount
+import com.rogue.scorequest.domain.model.PlayerStats
 import com.rogue.scorequest.domain.model.ScoreEntry
 import com.rogue.scorequest.domain.model.SessionWithDetails
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlin.math.roundToInt
+
+private const val PLAYER_TOP_GAMES_LIMIT = 5
 
 class GameSessionRepository(
     private val gameSessionDao: GameSessionDao,
@@ -89,6 +92,45 @@ class GameSessionRepository(
                 highScore = highScore
             )
         }
+
+    fun getPlayerStats(playerId: String): Flow<PlayerStats> =
+        combine(
+            scoreEntryDao.getPlayerCoreCounts(playerId),
+            scoreEntryDao.getPlayerTotalMinutes(playerId),
+            scoreEntryDao.getPlayerSessionResults(playerId),
+            scoreEntryDao.getPlayerTopGames(playerId, PLAYER_TOP_GAMES_LIMIT),
+            scoreEntryDao.getPlayerFavoriteGame(playerId)
+        ) { coreCounts, totalMinutes, sessionResults, topGames, favoriteGame ->
+            val (currentStreak, bestStreak) = calculateWinStreaks(sessionResults.map { it.isWinner })
+            PlayerStats(
+                gamesPlayed = coreCounts.gamesPlayed,
+                wins = coreCounts.wins,
+                decidedGames = coreCounts.decidedGames,
+                winRate = if (coreCounts.decidedGames > 0) coreCounts.wins.toDouble() / coreCounts.decidedGames else null,
+                totalMinutes = totalMinutes ?: 0,
+                currentWinStreak = currentStreak,
+                bestWinStreak = bestStreak,
+                topGames = topGames,
+                favoriteGame = favoriteGame
+            )
+        }
+
+    // Sequência de vitórias: quebra em qualquer resultado que não seja vitória (derrota OU
+    // partida sem vencedor definido, ex. cooperativa) — diferente da streak diária da Home,
+    // não tem conceito de "expirar", é só a maior sequência consecutiva na lista ordenada.
+    private fun calculateWinStreaks(results: List<Boolean?>): Pair<Int, Int> {
+        var best = 0
+        var running = 0
+        for (isWinner in results) {
+            if (isWinner == true) {
+                running++
+                if (running > best) best = running
+            } else {
+                running = 0
+            }
+        }
+        return running to best
+    }
 
     private suspend fun ensureLibraryEntryPlayed(gameId: String) {
         val now = System.currentTimeMillis()

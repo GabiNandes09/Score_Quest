@@ -8,6 +8,12 @@ import kotlinx.serialization.Serializable
 // clashing with commas that may appear inside an option label itself.
 const val MULTI_SELECT_VALUE_SEPARATOR = "||"
 
+// Chaves usadas em ScoreEntry.fieldValues para partidas com schema RANKING (ver
+// GameScoreSchema.kt). "position" é sempre gravado; "points" só existe se o schema
+// tiver o NumberField opcional de pontos (mesma key usada nesse campo).
+const val RANKING_POSITION_FIELD_KEY = "position"
+const val RANKING_POINTS_FIELD_KEY = "points"
+
 @Serializable
 sealed class ScoreFieldType {
     abstract val key: String

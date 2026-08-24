@@ -1,3 +1,3 @@
 package com.rogue.scorequest.domain.model
 
-enum class ScoreSchemaType { SIMPLE, COMPOSITE }
+enum class ScoreSchemaType { SIMPLE, COMPOSITE, RANKING }

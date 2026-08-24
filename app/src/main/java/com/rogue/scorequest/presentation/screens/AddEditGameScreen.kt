@@ -1,15 +1,11 @@
 package com.rogue.scorequest.presentation.screens
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -20,7 +16,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -28,18 +23,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
 import com.rogue.scorequest.domain.model.LibraryStatus
-import com.rogue.scorequest.presentation.components.rememberCameraCaptureAction
+import com.rogue.scorequest.presentation.components.ImagePickerSection
 import com.rogue.scorequest.presentation.viewmodel.AddEditGameViewModel
-import com.rogue.scorequest.utils.ImageStorage
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -51,16 +40,9 @@ fun AddEditGameScreen(
     viewModel: AddEditGameViewModel = koinViewModel(parameters = { parametersOf(gameId) })
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val context = LocalContext.current
 
     LaunchedEffect(state.saved) {
         if (state.saved) onBackClick()
-    }
-
-    val captureFromCamera = rememberCameraCaptureAction(onCaptured = viewModel::onCoverCaptured)
-
-    val pickImageLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) viewModel.onCoverCaptured(ImageStorage.persistImage(context, uri))
     }
 
     Scaffold(
@@ -83,24 +65,10 @@ fun AddEditGameScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            state.coverImagePath?.let { path ->
-                AsyncImage(
-                    model = path,
-                    contentDescription = null,
-                    modifier = Modifier.size(120.dp)
-                )
-            }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = captureFromCamera) {
-                    Text("Câmera")
-                }
-                OutlinedButton(onClick = {
-                    pickImageLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                }) {
-                    Text("Galeria")
-                }
-            }
+            ImagePickerSection(
+                currentPath = state.coverImagePath,
+                onCaptured = viewModel::onCoverCaptured
+            )
 
             OutlinedTextField(
                 value = state.name,

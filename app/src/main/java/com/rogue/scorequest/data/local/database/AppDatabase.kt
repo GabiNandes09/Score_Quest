@@ -3,6 +3,7 @@ package com.rogue.scorequest.data.local.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.rogue.scorequest.data.local.dao.ActiveTimerDao
 import com.rogue.scorequest.data.local.dao.BoardGameDao
 import com.rogue.scorequest.data.local.dao.FavoriteGameDao
 import com.rogue.scorequest.data.local.dao.GameScoreSchemaDao
@@ -11,6 +12,7 @@ import com.rogue.scorequest.data.local.dao.PlayerDao
 import com.rogue.scorequest.data.local.dao.ScoreEntryDao
 import com.rogue.scorequest.data.local.dao.UserLibraryEntryDao
 import com.rogue.scorequest.data.local.dao.UserProfileDao
+import com.rogue.scorequest.data.local.entity.ActiveTimerEntity
 import com.rogue.scorequest.data.local.entity.BoardGameEntity
 import com.rogue.scorequest.data.local.entity.Converters
 import com.rogue.scorequest.data.local.entity.FavoriteGameEntity
@@ -30,9 +32,10 @@ import com.rogue.scorequest.data.local.entity.UserProfileEntity
         ScoreEntryEntity::class,
         UserProfileEntity::class,
         FavoriteGameEntity::class,
-        GameScoreSchemaEntity::class
+        GameScoreSchemaEntity::class,
+        ActiveTimerEntity::class
     ],
-    version = 1
+    version = 2
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -44,4 +47,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userProfileDao(): UserProfileDao
     abstract fun favoriteGameDao(): FavoriteGameDao
     abstract fun gameScoreSchemaDao(): GameScoreSchemaDao
+    abstract fun activeTimerDao(): ActiveTimerDao
 }

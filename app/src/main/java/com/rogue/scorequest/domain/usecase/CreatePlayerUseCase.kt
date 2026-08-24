@@ -8,12 +8,12 @@ import java.util.UUID
 class CreatePlayerUseCase(
     private val repository: PlayerRepository
 ) {
-    suspend operator fun invoke(nickname: String, avatarColor: String? = null): Player {
+    suspend operator fun invoke(nickname: String, avatarPath: String? = null): Player {
         val now = LocalDateTime.now()
         val player = Player(
             id = UUID.randomUUID().toString(),
             nickname = nickname,
-            avatarColor = avatarColor,
+            avatarPath = avatarPath,
             createdAt = now,
             updatedAt = now
         )

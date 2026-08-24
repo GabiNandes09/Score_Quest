@@ -28,7 +28,15 @@ data class AddSessionState(
     val compositeFieldValues: Map<String, Map<String, String>> = emptyMap(), // playerId -> fieldKey -> valor
     val manualWinnerId: String? = null, // winnerMode = MANUAL
     val automaticWinnerIds: Set<String> = emptySet(), // winnerMode = AUTOMATIC, já resolvido (inclui empate considerado)
-    val pendingTieCandidateIds: List<String> = emptyList() // winnerMode = AUTOMATIC, aguardando decisão do usuário
+    val pendingTieCandidateIds: List<String> = emptyList(), // winnerMode = AUTOMATIC, aguardando decisão do usuário
+
+    // Override por partida: mesmo com schema COMPOSITE, entra igual a um jogo Simples
+    // (só total + vencedor), pulando o formulário campo-a-campo.
+    val useSimpleEntry: Boolean = false,
+
+    // Pontuação Ranking (schema RANKING): playerIds ordenados, índice 0 = 1º lugar.
+    val rankingOrder: List<String> = emptyList(),
+    val rankingPoints: Map<String, String> = emptyMap() // playerId -> texto digitado, só se o schema tiver o campo de pontos
 ) {
     val canProceedFromGameStep: Boolean get() = selectedGameId != null
     val canProceedFromSessionDataStep: Boolean get() = durationMinutes.toIntOrNull() != null

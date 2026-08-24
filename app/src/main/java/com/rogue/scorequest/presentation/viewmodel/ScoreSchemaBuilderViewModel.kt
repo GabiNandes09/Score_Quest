@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.rogue.scorequest.domain.model.ComparisonRule
 import com.rogue.scorequest.domain.model.DuplicableSchema
 import com.rogue.scorequest.domain.model.GameScoreSchema
+import com.rogue.scorequest.domain.model.RANKING_POINTS_FIELD_KEY
 import com.rogue.scorequest.domain.model.ScoreFieldType
 import com.rogue.scorequest.domain.model.ScoreFormula
 import com.rogue.scorequest.domain.model.ScoreSchemaType
@@ -74,6 +75,21 @@ class ScoreSchemaBuilderViewModel(
 
     fun onCompositeChosen() {
         _state.update { it.copy(type = ScoreSchemaType.COMPOSITE, step = BuilderStep.FIELD_LIST) }
+    }
+
+    fun onRankingChosen() {
+        _state.update { it.copy(type = ScoreSchemaType.RANKING, fields = emptyList(), formulaTerms = emptyList()) }
+    }
+
+    fun onToggleRankingPoints() {
+        _state.update { current ->
+            val fields = if (current.fields.isEmpty()) {
+                listOf(ScoreFieldType.NumberField(key = RANKING_POINTS_FIELD_KEY, label = "Pontos"))
+            } else {
+                emptyList()
+            }
+            current.copy(fields = fields)
+        }
     }
 
     fun onDuplicateSelected(duplicable: DuplicableSchema) {
@@ -203,7 +219,11 @@ class ScoreSchemaBuilderViewModel(
                 gameId = gameId,
                 type = type,
                 fields = if (type == ScoreSchemaType.SIMPLE) emptyList() else current.fields,
-                winnerMode = if (type == ScoreSchemaType.SIMPLE) WinnerMode.AUTOMATIC else current.winnerMode,
+                winnerMode = if (type == ScoreSchemaType.SIMPLE || type == ScoreSchemaType.RANKING) {
+                    WinnerMode.AUTOMATIC
+                } else {
+                    current.winnerMode
+                },
                 formula = formula
             )
             _state.update { it.copy(isSaving = false, saved = true) }

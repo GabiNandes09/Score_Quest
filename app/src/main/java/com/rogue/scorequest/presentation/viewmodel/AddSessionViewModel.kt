@@ -6,10 +6,13 @@ import com.rogue.scorequest.domain.model.ComparisonRule
 import com.rogue.scorequest.domain.model.GameScoreSchema
 import com.rogue.scorequest.domain.model.GameWithLibraryInfo
 import com.rogue.scorequest.domain.model.Player
+import com.rogue.scorequest.domain.model.RANKING_POINTS_FIELD_KEY
+import com.rogue.scorequest.domain.model.RANKING_POSITION_FIELD_KEY
 import com.rogue.scorequest.domain.model.ScoreInput
 import com.rogue.scorequest.domain.model.ScoreSchemaType
 import com.rogue.scorequest.domain.model.WinnerMode
 import com.rogue.scorequest.domain.usecase.CalculateScoreFormulaUseCase
+import com.rogue.scorequest.domain.usecase.ClearActiveTimerForGameUseCase
 import com.rogue.scorequest.domain.usecase.CreatePlayerUseCase
 import com.rogue.scorequest.domain.usecase.GetGameScoreSchemaUseCase
 import com.rogue.scorequest.domain.usecase.GetGamesUseCase
@@ -39,6 +42,7 @@ import kotlinx.coroutines.launch
 class AddSessionViewModel(
     val sessionId: String,
     val initialGameId: String,
+    val initialDurationMinutes: String,
     getGamesUseCase: GetGamesUseCase,
     getPlayersUseCase: GetPlayersUseCase,
     private val createPlayerUseCase: CreatePlayerUseCase,
@@ -46,7 +50,8 @@ class AddSessionViewModel(
     private val updateGameSessionUseCase: UpdateGameSessionUseCase,
     private val getSessionDetailUseCase: GetSessionDetailUseCase,
     getGameScoreSchemaUseCase: GetGameScoreSchemaUseCase,
-    private val calculateScoreFormulaUseCase: CalculateScoreFormulaUseCase
+    private val calculateScoreFormulaUseCase: CalculateScoreFormulaUseCase,
+    private val clearActiveTimerForGameUseCase: ClearActiveTimerForGameUseCase
 ) : ViewModel() {
 
     val isEditMode: Boolean = sessionId != Routes.AddSessionWizardGraph.NEW_SESSION
@@ -55,11 +60,15 @@ class AddSessionViewModel(
 
     private var autoAdvancePending = hasPreselectedGame
 
+    private val hasPrefillDuration: Boolean =
+        hasPreselectedGame && initialDurationMinutes != Routes.AddSessionWizardGraph.NO_DURATION
+
     private val _state = MutableStateFlow(
         AddSessionState(
             isEditMode = isEditMode,
             isLoading = isEditMode,
-            selectedGameId = initialGameId.takeIf { hasPreselectedGame }
+            selectedGameId = initialGameId.takeIf { hasPreselectedGame },
+            durationMinutes = initialDurationMinutes.takeIf { hasPrefillDuration }.orEmpty()
         )
     )
     val state = _state.asStateFlow()
@@ -103,7 +112,20 @@ class AddSessionViewModel(
                             },
                             compositeFieldValues = detail.scores.associate { it.playerId to it.fieldValues.orEmpty() },
                             manualWinnerId = detail.scores.find { it.isWinner == true }?.playerId,
-                            automaticWinnerIds = detail.scores.filter { it.isWinner == true }.map { it.playerId }.toSet()
+                            automaticWinnerIds = detail.scores.filter { it.isWinner == true }.map { it.playerId }.toSet(),
+                            // Heurística: schema pode ser COMPOSITE mas essa partida não tem
+                            // nenhum fieldValues salvo -> foi registrada em modo Simples.
+                            useSimpleEntry = detail.scores.isNotEmpty() && detail.scores.all { it.fieldValues.isNullOrEmpty() },
+                            // Heurística equivalente pro Ranking: só sessões Ranking gravam a
+                            // chave "position" em fieldValues, então a presença dela já basta
+                            // pra reconstruir a ordem sem precisar esperar o schema carregar.
+                            rankingOrder = detail.scores
+                                .filter { it.fieldValues?.containsKey(RANKING_POSITION_FIELD_KEY) == true }
+                                .sortedBy { it.fieldValues?.get(RANKING_POSITION_FIELD_KEY)?.toIntOrNull() ?: Int.MAX_VALUE }
+                                .map { it.playerId },
+                            rankingPoints = detail.scores.associate {
+                                it.playerId to (it.fieldValues?.get(RANKING_POINTS_FIELD_KEY) ?: it.totalScore?.toString().orEmpty())
+                            }
                         )
                     }
                 }
@@ -157,11 +179,22 @@ class AddSessionViewModel(
     }
 
     fun onPlayerToggled(playerId: String) {
-        val current = _state.value.selectedPlayerIds
+        val state = _state.value
+        val current = state.selectedPlayerIds
         val updatedIds = if (playerId in current) current - playerId else current + playerId
-        val updatedScores = _state.value.scores.filterKeys { it in updatedIds }.toMutableMap()
+        val updatedScores = state.scores.filterKeys { it in updatedIds }.toMutableMap()
         updatedIds.filter { it !in updatedScores }.forEach { updatedScores[it] = ScoreEntryInput() }
-        _state.value = _state.value.copy(selectedPlayerIds = updatedIds, scores = updatedScores)
+        // Mantém a ordem de ranking em sincronia: remove quem foi desmarcado, acrescenta
+        // quem foi marcado agora no fim da lista (sem mexer na ordem de quem já estava).
+        val updatedRankingOrder = state.rankingOrder.filter { it in updatedIds } +
+            updatedIds.filter { it !in state.rankingOrder }
+        val updatedRankingPoints = state.rankingPoints.filterKeys { it in updatedIds }
+        _state.value = state.copy(
+            selectedPlayerIds = updatedIds,
+            scores = updatedScores,
+            rankingOrder = updatedRankingOrder,
+            rankingPoints = updatedRankingPoints
+        )
     }
 
     fun createAndAddPlayer(nickname: String) {
@@ -183,6 +216,42 @@ class AddSessionViewModel(
         val entry = updated[playerId] ?: ScoreEntryInput()
         updated[playerId] = entry.copy(isWinner = !entry.isWinner)
         _state.value = _state.value.copy(scores = updated)
+    }
+
+    fun onToggleSimpleEntry() {
+        _state.value = _state.value.copy(useSimpleEntry = !_state.value.useSimpleEntry)
+    }
+
+    fun ensureRankingOrderInitialized() {
+        val current = _state.value
+        if (current.rankingOrder.isEmpty() && current.selectedPlayerIds.isNotEmpty()) {
+            _state.value = current.copy(rankingOrder = current.selectedPlayerIds)
+        }
+    }
+
+    fun onRankingReordered(newOrder: List<String>) {
+        _state.value = _state.value.copy(rankingOrder = newOrder)
+    }
+
+    fun onMoveRankingUp(index: Int) {
+        if (index <= 0) return
+        val updated = _state.value.rankingOrder.toMutableList()
+        val moved = updated.removeAt(index)
+        updated.add(index - 1, moved)
+        _state.value = _state.value.copy(rankingOrder = updated)
+    }
+
+    fun onMoveRankingDown(index: Int) {
+        val order = _state.value.rankingOrder
+        if (index >= order.lastIndex) return
+        val updated = order.toMutableList()
+        val moved = updated.removeAt(index)
+        updated.add(index + 1, moved)
+        _state.value = _state.value.copy(rankingOrder = updated)
+    }
+
+    fun onRankingPointsChanged(playerId: String, value: String) {
+        _state.value = _state.value.copy(rankingPoints = _state.value.rankingPoints + (playerId to value))
     }
 
     fun onCompositeFieldChange(playerId: String, fieldKey: String, value: String) {
@@ -251,25 +320,42 @@ class AddSessionViewModel(
         val duration = current.durationMinutes.toIntOrNull() ?: 0
         val currentSchema = schema.value
 
-        val scoreInputs = if (currentSchema != null && currentSchema.type == ScoreSchemaType.COMPOSITE) {
-            current.selectedPlayerIds.map { playerId ->
-                val fieldValues = current.compositeFieldValues[playerId] ?: emptyMap()
-                val totalScore = if (currentSchema.winnerMode == WinnerMode.AUTOMATIC) {
-                    calculateScoreFormulaUseCase(currentSchema, fieldValues)
-                } else {
-                    null
+        val scoreInputs = when {
+            currentSchema != null && currentSchema.type == ScoreSchemaType.COMPOSITE && !current.useSimpleEntry -> {
+                current.selectedPlayerIds.map { playerId ->
+                    val fieldValues = current.compositeFieldValues[playerId] ?: emptyMap()
+                    val totalScore = if (currentSchema.winnerMode == WinnerMode.AUTOMATIC) {
+                        calculateScoreFormulaUseCase(currentSchema, fieldValues)
+                    } else {
+                        null
+                    }
+                    val isWinner = when (currentSchema.winnerMode) {
+                        WinnerMode.MANUAL -> playerId == current.manualWinnerId
+                        WinnerMode.AUTOMATIC -> playerId in current.automaticWinnerIds
+                        WinnerMode.NONE -> null
+                    }
+                    ScoreInput(playerId = playerId, totalScore = totalScore, isWinner = isWinner, fieldValues = fieldValues)
                 }
-                val isWinner = when (currentSchema.winnerMode) {
-                    WinnerMode.MANUAL -> playerId == current.manualWinnerId
-                    WinnerMode.AUTOMATIC -> playerId in current.automaticWinnerIds
-                    WinnerMode.NONE -> null
-                }
-                ScoreInput(playerId = playerId, totalScore = totalScore, isWinner = isWinner, fieldValues = fieldValues)
             }
-        } else {
-            current.selectedPlayerIds.map { playerId ->
-                val entry = current.scores[playerId] ?: ScoreEntryInput()
-                ScoreInput(playerId = playerId, totalScore = entry.totalScore.toIntOrNull(), isWinner = entry.isWinner)
+            currentSchema != null && currentSchema.type == ScoreSchemaType.RANKING -> {
+                val hasPointsField = currentSchema.fields.isNotEmpty()
+                val order = current.rankingOrder.ifEmpty { current.selectedPlayerIds }
+                order.mapIndexed { index, playerId ->
+                    val position = index + 1
+                    val pointsText = current.rankingPoints[playerId]
+                    val points = if (hasPointsField) pointsText?.toIntOrNull() else null
+                    val fieldValues = buildMap {
+                        put(RANKING_POSITION_FIELD_KEY, position.toString())
+                        if (hasPointsField) put(RANKING_POINTS_FIELD_KEY, pointsText.orEmpty())
+                    }
+                    ScoreInput(playerId = playerId, totalScore = points, isWinner = position == 1, fieldValues = fieldValues)
+                }
+            }
+            else -> {
+                current.selectedPlayerIds.map { playerId ->
+                    val entry = current.scores[playerId] ?: ScoreEntryInput()
+                    ScoreInput(playerId = playerId, totalScore = entry.totalScore.toIntOrNull(), isWinner = entry.isWinner)
+                }
             }
         }
 
@@ -298,6 +384,13 @@ class AddSessionViewModel(
                     photoUri = current.photoPath,
                     scores = scoreInputs
                 )
+                // Partida veio de um cronômetro finalizado (ver Routes.NO_DURATION):
+                // só agora, com os dados de fato salvos, o cronômetro é encerrado de
+                // verdade. Até aqui ele ficou só pausado (ver FinishTimerUseCase), pra
+                // não reiniciar do zero se o usuário saísse do wizard sem salvar.
+                if (hasPrefillDuration) {
+                    clearActiveTimerForGameUseCase(gameId)
+                }
             }
             _state.value = _state.value.copy(isSaving = false, saved = true)
         }

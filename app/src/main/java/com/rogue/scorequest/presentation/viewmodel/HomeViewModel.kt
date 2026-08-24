@@ -2,6 +2,7 @@ package com.rogue.scorequest.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rogue.scorequest.domain.usecase.GetActiveTimerUseCase
 import com.rogue.scorequest.domain.usecase.GetActivityHeatmapUseCase
 import com.rogue.scorequest.domain.usecase.GetDurationHistogramUseCase
 import com.rogue.scorequest.domain.usecase.GetHomeStatsUseCase
@@ -25,7 +26,8 @@ class HomeViewModel(
     getPlayers: GetPlayersUseCase,
     getActivityHeatmap: GetActivityHeatmapUseCase,
     getSessionsByMonth: GetSessionsByMonthUseCase,
-    getDurationHistogram: GetDurationHistogramUseCase
+    getDurationHistogram: GetDurationHistogramUseCase,
+    getActiveTimer: GetActiveTimerUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeState())
@@ -77,6 +79,11 @@ class HomeViewModel(
         viewModelScope.launch {
             getDurationHistogram().collect { histogram ->
                 _state.value = _state.value.copy(durationHistogram = histogram)
+            }
+        }
+        viewModelScope.launch {
+            getActiveTimer().collect { timer ->
+                _state.value = _state.value.copy(activeTimer = timer)
             }
         }
     }

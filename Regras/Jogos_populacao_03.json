@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "description": "Terceira leva de seed do acervo do ScoreQuest. Mesmo formato do arquivo 'Jogos iniciais.json': cada entrada em 'games' segue domain/model/BoardGame.kt. IDs são slugs estáveis, não UUIDs reais — a rotina de seed deve gerar UUID de verdade na hora de inserir. Nenhum 'scoreSchemas' incluído nesta leva (combinado: fica para uma sessão futura, focada em pontuação personalizada).",
+  "games": [
+    {
+      "id": "seed-dungeon-drop",
+      "name": "Dungeon Drop",
+      "minPlayers": 1,
+      "maxPlayers": 4,
+      "avgDurationMinutes": 20,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/24555_t.jpg",
+      "category": "Dungeon Crawler / Jogo de Entrada",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Scott R. Smith",
+        "yearPublished": 2020,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/dungeon-drop",
+        "notes": "Dados extraídos da página do Ludopedia em 11/08/2026. Sem complexidade BGG listada na página. Jogo base, sem expansões (Dropped Too Deep, Trials & Tools, etc.)."
+      }
+    },
+    {
+      "id": "seed-munchkin",
+      "name": "Munchkin",
+      "minPlayers": 3,
+      "maxPlayers": 6,
+      "avgDurationMinutes": 90,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/334_t.jpg",
+      "category": "Jogo de Cartas",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Steve Jackson (I)",
+        "yearPublished": 2001,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/munchkin",
+        "notes": "Jogo base (Munchkin clássico), sem as dezenas de variações temáticas (Cthulhu, Zombies, Adventure Time, etc.) nem expansões. Sem complexidade BGG listada na página do Ludopedia."
+      }
+    },
+    {
+      "id": "seed-geeks-vs-trolls",
+      "name": "Geeks Vs Trolls",
+      "minPlayers": 1,
+      "maxPlayers": 6,
+      "avgDurationMinutes": 15,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/66495_t.jpg",
+      "category": "Jogo de Cartas / Cultura Pop",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Marcelo Vieira",
+        "yearPublished": 2026,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/geeks-vs-trolls",
+        "notes": "Jogo nacional independente, nascido de financiamento coletivo (Catarse). Sem complexidade BGG listada."
+      }
+    },
+    {
+      "id": "seed-claim",
+      "name": "Claim",
+      "minPlayers": 2,
+      "maxPlayers": 2,
+      "avgDurationMinutes": 25,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/16304_t.jpg",
+      "category": "Jogo de Cartas / Carteado",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Scott Almes",
+        "yearPublished": 2017,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/claim",
+        "notes": "Jogo base para 2 jogadores (combinável com a expansão 'Claim 2' para 3-4 jogadores, não modelada aqui). Sem complexidade BGG listada na página do Ludopedia."
+      }
+    },
+    {
+      "id": "seed-quarriors",
+      "name": "Quarriors!",
+      "minPlayers": 2,
+      "maxPlayers": 4,
+      "avgDurationMinutes": 30,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/112_t.jpg",
+      "category": "Jogo de Dados",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Mike Elliott, Eric M. Lang",
+        "yearPublished": 2011,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/quarriors",
+        "notes": "Jogo base de dice-building. Sem complexidade BGG listada na página do Ludopedia."
+      }
+    },
+    {
+      "id": "seed-batalha-dos-deuses",
+      "name": "Batalha dos Deuses",
+      "minPlayers": 2,
+      "maxPlayers": 5,
+      "avgDurationMinutes": 60,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/72874_t.jpg",
+      "category": "Jogo de Cartas / Jogo Assimétrico",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Carlos Ruas, Guilherme Bon",
+        "yearPublished": 2024,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/batalha-dos-deuses",
+        "notes": "Jogo nacional (Um Sábado Qualquer + Galápagos), assimétrico por design — cada jogador controla uma facção religiosa/mitológica diferente (Cristã, Grega, Nórdica, Egípcia, Yoruba). Sem complexidade BGG listada."
+      }
+    },
+    {
+      "id": "seed-ultimate-warriorz",
+      "name": "Ultimate Warriorz",
+      "minPlayers": 2,
+      "maxPlayers": 8,
+      "avgDurationMinutes": 30,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/7479_t.jpg",
+      "category": "Jogo de Cartas / Jogo Assimétrico",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Guillaume Blossier",
+        "yearPublished": 2011,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/ultimate-warriorz",
+        "notes": "Suporta até 8 jogadores (individual ou em equipes). Sem complexidade BGG listada na página do Ludopedia."
+      }
+    },
+    {
+      "id": "seed-star-realms",
+      "name": "Star Realms",
+      "minPlayers": 2,
+      "maxPlayers": 2,
+      "avgDurationMinutes": 20,
+      "coverImageUrl": "https://storage.googleapis.com/ludopedia-capas/4069_t.jpg",
+      "category": "Jogo de Cartas",
+      "weight": null,
+      "source": "CURATED",
+      "metadata": {
+        "designer": "Robert Dougherty, Darwin Kastle",
+        "yearPublished": 2014,
+        "ludopediaUrl": "https://ludopedia.com.br/jogo/star-realms",
+        "notes": "Jogo base para 2 jogadores (o manual inclui regras para 4, mas o suporte oficial de jogadores cadastrado no Ludopedia é 2). Sem complexidade BGG listada na página."
+      }
+    }
+  ],
+  "scoreSchemas": []
+}

@@ -33,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -142,6 +143,32 @@ private fun TypeChoiceStep(state: ScoreSchemaBuilderState, viewModel: ScoreSchem
             selected = state.type == ScoreSchemaType.COMPOSITE,
             onClick = viewModel::onCompositeChosen
         )
+        SchemaTypeCard(
+            title = "Ranking",
+            description = "Todos os jogadores na mesma tela — arraste pra definir a posição de 1º a Nº. Vencedor = quem fica em 1º.",
+            selected = state.type == ScoreSchemaType.RANKING,
+            onClick = viewModel::onRankingChosen
+        )
+
+        if (state.type == ScoreSchemaType.RANKING) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Ativar pontos por jogador",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f)
+                )
+                Switch(
+                    checked = state.fields.isNotEmpty(),
+                    onCheckedChange = { viewModel.onToggleRankingPoints() }
+                )
+            }
+        }
 
         if (state.duplicableSchemas.isNotEmpty()) {
             OutlinedButton(onClick = { showDuplicatePicker = true }, modifier = Modifier.fillMaxWidth()) {
@@ -149,7 +176,7 @@ private fun TypeChoiceStep(state: ScoreSchemaBuilderState, viewModel: ScoreSchem
             }
         }
 
-        if (state.type == ScoreSchemaType.SIMPLE) {
+        if (state.type == ScoreSchemaType.SIMPLE || state.type == ScoreSchemaType.RANKING) {
             Button(
                 onClick = viewModel::save,
                 enabled = !state.isSaving,
