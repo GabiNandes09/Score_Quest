@@ -4,6 +4,7 @@ import com.rogue.scorequest.presentation.viewmodel.AddEditGameViewModel
 import com.rogue.scorequest.presentation.viewmodel.AddEditGroupViewModel
 import com.rogue.scorequest.presentation.viewmodel.AddEditPlayerViewModel
 import com.rogue.scorequest.presentation.viewmodel.AddSessionViewModel
+import com.rogue.scorequest.presentation.viewmodel.AssignRolesViewModel
 import com.rogue.scorequest.presentation.viewmodel.EditFavoritesViewModel
 import com.rogue.scorequest.presentation.viewmodel.EditProfileViewModel
 import com.rogue.scorequest.presentation.viewmodel.GameDetailViewModel
@@ -13,11 +14,14 @@ import com.rogue.scorequest.presentation.viewmodel.HomeViewModel
 import com.rogue.scorequest.presentation.viewmodel.LiveMatchChooseGameViewModel
 import com.rogue.scorequest.presentation.viewmodel.LiveMatchViewModel
 import com.rogue.scorequest.presentation.viewmodel.ManagePlayersViewModel
+import com.rogue.scorequest.presentation.viewmodel.PickNamesViewModel
 import com.rogue.scorequest.presentation.viewmodel.PlayerDetailViewModel
 import com.rogue.scorequest.presentation.viewmodel.ProfileViewModel
 import com.rogue.scorequest.presentation.viewmodel.ScoreSchemaBuilderViewModel
 import com.rogue.scorequest.presentation.viewmodel.SessionDetailViewModel
 import com.rogue.scorequest.presentation.viewmodel.SettingsViewModel
+import com.rogue.scorequest.presentation.viewmodel.ShuffleOrderViewModel
+import com.rogue.scorequest.presentation.viewmodel.ShuffleTeamsViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -40,4 +44,8 @@ val viewModelModule = module {
     viewModel { (groupId: String) -> GroupDetailViewModel(groupId, get(), get(), get()) }
     viewModel { (groupId: String) -> AddEditGroupViewModel(groupId, get(), get(), get(), get(), get()) }
     viewModel { (gameId: String) -> ScoreSchemaBuilderViewModel(gameId, get(), get(), get(), get(), get()) }
+    viewModel { PickNamesViewModel(get(), get()) }
+    viewModel { ShuffleOrderViewModel(get(), get()) }
+    viewModel { ShuffleTeamsViewModel(get(), get()) }
+    viewModel { AssignRolesViewModel(get(), get()) }
 }

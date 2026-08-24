@@ -12,6 +12,12 @@ data class PlayerWinCount(
     val wins: Int
 )
 
+data class PlayerPlayCount(
+    val playerId: String,
+    val playerName: String,
+    val playCount: Int
+)
+
 data class HomeStats(
     val streakDays: Int,
     val isStreakActive: Boolean,

@@ -54,11 +54,15 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rogue.scorequest.domain.model.LibraryStatus
 import com.rogue.scorequest.domain.model.SessionWithDetails
+import com.rogue.scorequest.presentation.components.BarChartEntry
 import com.rogue.scorequest.presentation.components.GameCoverImage
+import com.rogue.scorequest.presentation.components.HorizontalBarChart
+import com.rogue.scorequest.presentation.components.PositionBadge
 import com.rogue.scorequest.presentation.components.StatIconItem
 import com.rogue.scorequest.presentation.viewmodel.GameDetailViewModel
 import com.rogue.scorequest.ui.theme.Gold
 import com.rogue.scorequest.utils.formatDuration
+import com.rogue.scorequest.utils.toLocalDateTime
 import com.rogue.scorequest.utils.toRelativeDayString
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -208,6 +212,98 @@ fun GameDetailScreen(
                                 icon = Icons.Filled.AccessTime,
                                 value = formatDuration(stats.avgDurationMinutes)
                             )
+                        }
+                    }
+                }
+            }
+        }
+
+        state.stats?.let { stats ->
+            if (stats.longestSessionMinutes != null || stats.highScore != null) {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text(text = "Recordes", style = MaterialTheme.typography.titleMedium, color = Gold)
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                                stats.longestSessionMinutes?.let {
+                                    StatIconItem(icon = Icons.Filled.Timer, value = "Maior: ${formatDuration(it)}")
+                                }
+                                stats.highScore?.let {
+                                    StatIconItem(icon = Icons.Filled.Star, value = "Recorde: $it")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (stats.topPlayersByPlays.isNotEmpty()) {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text(text = "Mais partidas jogadas", style = MaterialTheme.typography.titleMedium, color = Gold)
+                            HorizontalBarChart(
+                                entries = stats.topPlayersByPlays.mapIndexed { index, player ->
+                                    BarChartEntry(
+                                        label = player.playerName,
+                                        value = player.playCount.toFloat(),
+                                        displayValue = "${player.playCount}x",
+                                        highlighted = index == 0
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (stats.topPlayersByWins.isNotEmpty()) {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text(text = "Mais vitórias", style = MaterialTheme.typography.titleMedium, color = Gold)
+                            HorizontalBarChart(
+                                entries = stats.topPlayersByWins.mapIndexed { index, player ->
+                                    BarChartEntry(
+                                        label = player.playerName,
+                                        value = player.wins.toFloat(),
+                                        displayValue = "${player.wins}x",
+                                        highlighted = index == 0
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (stats.topScores.isNotEmpty()) {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text(text = "Maiores pontuações", style = MaterialTheme.typography.titleMedium, color = Gold)
+                            stats.topScores.forEachIndexed { index, record ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { onSessionClick(record.sessionId) },
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        PositionBadge(position = index + 1, modifier = Modifier.padding(end = 8.dp))
+                                        Column {
+                                            Text(text = record.playerName)
+                                            Text(
+                                                text = record.date.toLocalDateTime().toRelativeDayString(),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                    Text(text = "${record.score}", fontWeight = FontWeight.Bold)
+                                }
+                            }
                         }
                     }
                 }

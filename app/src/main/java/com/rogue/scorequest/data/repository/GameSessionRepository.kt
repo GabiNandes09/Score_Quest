@@ -17,6 +17,7 @@ import com.rogue.scorequest.domain.model.GameStats
 import com.rogue.scorequest.domain.model.GroupStats
 import com.rogue.scorequest.domain.model.LibraryStatus
 import com.rogue.scorequest.domain.model.MonthSessionCount
+import com.rogue.scorequest.domain.model.PlayerPlayCount
 import com.rogue.scorequest.domain.model.PlayerStats
 import com.rogue.scorequest.domain.model.PlayerWinCount
 import com.rogue.scorequest.domain.model.ScoreEntry
@@ -28,6 +29,8 @@ import kotlin.math.roundToInt
 
 private const val PLAYER_TOP_GAMES_LIMIT = 5
 private const val GROUP_TOP_GAMES_LIMIT = 5
+private const val GAME_TOP_PLAYERS_LIMIT = 5
+private const val GAME_TOP_SCORES_LIMIT = 5
 
 class GameSessionRepository(
     private val gameSessionDao: GameSessionDao,
@@ -85,18 +88,49 @@ class GameSessionRepository(
     fun getLastPlayedDates(): Flow<Map<String, Long>> =
         gameSessionDao.getLastPlayedDates().map { rows -> rows.associate { it.gameId to it.lastPlayedDate } }
 
-    fun getGameStats(gameId: String): Flow<GameStats> =
-        combine(
+    fun getGameStats(gameId: String): Flow<GameStats> {
+        // combine() só tem overload tipado até 5 flows — junta os 5 primeiros num holder
+        // intermediário e faz um segundo combine com os 2 rankings restantes, em vez de usar
+        // a forma vararg/Array (menos legível pra tipos heterogêneos).
+        val core = combine(
             gameSessionDao.getTimesPlayed(gameId),
             gameSessionDao.getAvgDurationForGame(gameId),
-            scoreEntryDao.getMaxScoreForGame(gameId)
-        ) { timesPlayed, avgDuration, highScore ->
-            GameStats(
+            gameSessionDao.getLongestSessionMinutes(gameId),
+            scoreEntryDao.getMaxScoreForGame(gameId),
+            scoreEntryDao.getTopPlayersByPlaysForGame(gameId, GAME_TOP_PLAYERS_LIMIT)
+        ) { timesPlayed, avgDuration, longestSession, highScore, topPlayersByPlays ->
+            GameCoreStats(
                 timesPlayed = timesPlayed,
                 avgDurationMinutes = avgDuration?.roundToInt() ?: 0,
-                highScore = highScore
+                longestSessionMinutes = longestSession,
+                highScore = highScore,
+                topPlayersByPlays = topPlayersByPlays
             )
         }
+        return combine(
+            core,
+            scoreEntryDao.getTopPlayersByWinsForGame(gameId, GAME_TOP_PLAYERS_LIMIT),
+            scoreEntryDao.getTopScoresForGame(gameId, GAME_TOP_SCORES_LIMIT)
+        ) { c, topPlayersByWins, topScores ->
+            GameStats(
+                timesPlayed = c.timesPlayed,
+                avgDurationMinutes = c.avgDurationMinutes,
+                longestSessionMinutes = c.longestSessionMinutes,
+                highScore = c.highScore,
+                topPlayersByPlays = c.topPlayersByPlays,
+                topPlayersByWins = topPlayersByWins,
+                topScores = topScores
+            )
+        }
+    }
+
+    private data class GameCoreStats(
+        val timesPlayed: Int,
+        val avgDurationMinutes: Int,
+        val longestSessionMinutes: Int?,
+        val highScore: Int?,
+        val topPlayersByPlays: List<PlayerPlayCount>
+    )
 
     fun getPlayerStats(playerId: String): Flow<PlayerStats> =
         combine(

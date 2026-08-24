@@ -1,9 +1,14 @@
 package com.rogue.scorequest.presentation.navigation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -12,13 +17,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NamedNavArgument
@@ -46,9 +57,22 @@ import com.rogue.scorequest.presentation.screens.PlayerDetailScreen
 import com.rogue.scorequest.presentation.screens.ProfileScreen
 import com.rogue.scorequest.presentation.screens.SessionDetailScreen
 import com.rogue.scorequest.presentation.screens.SettingsScreen
+import com.rogue.scorequest.presentation.screens.ToolsScreen
 import com.rogue.scorequest.presentation.screens.livematch.LiveMatchChooseGameScreen
 import com.rogue.scorequest.presentation.screens.livematch.LiveMatchScreen
 import com.rogue.scorequest.presentation.screens.scoreschema.ScoreSchemaBuilderScreen
+import com.rogue.scorequest.presentation.screens.tools.AssignRolesScreen
+import com.rogue.scorequest.presentation.screens.tools.CoinFlipScreen
+import com.rogue.scorequest.presentation.screens.tools.DiceRollerScreen
+import com.rogue.scorequest.presentation.screens.tools.FingerPickerScreen
+import com.rogue.scorequest.presentation.screens.tools.PickNamesScreen
+import com.rogue.scorequest.presentation.screens.tools.RandomLetterScreen
+import com.rogue.scorequest.presentation.screens.tools.RandomNumberScreen
+import com.rogue.scorequest.presentation.screens.tools.ScratchScoreboardScreen
+import com.rogue.scorequest.presentation.screens.tools.ShuffleOrderScreen
+import com.rogue.scorequest.presentation.screens.tools.ShuffleTeamsScreen
+import com.rogue.scorequest.presentation.screens.tools.SpinWheelScreen
+import com.rogue.scorequest.presentation.screens.tools.TurnTimerScreen
 import com.rogue.scorequest.presentation.screens.wizard.ChooseGameStep
 import com.rogue.scorequest.presentation.screens.wizard.CompositeScoringStep
 import com.rogue.scorequest.presentation.screens.wizard.ConfirmStep
@@ -57,10 +81,17 @@ import com.rogue.scorequest.presentation.screens.wizard.RankingScoringStep
 import com.rogue.scorequest.presentation.screens.wizard.ScoringStep
 import com.rogue.scorequest.presentation.screens.wizard.SessionDataStep
 import com.rogue.scorequest.presentation.viewmodel.AddSessionViewModel
+import com.rogue.scorequest.ui.theme.Gold
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-private val mainTabRoutes = setOf(Routes.Home.route, Routes.Games.route, Routes.Profile.route, Routes.ManagePlayers.route)
+private val mainTabRoutes = setOf(
+    Routes.Home.route,
+    Routes.Games.route,
+    Routes.Profile.route,
+    Routes.ManagePlayers.route,
+    Routes.Tools.route
+)
 
 @Composable
 fun AppNavigation() {
@@ -68,7 +99,7 @@ fun AppNavigation() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val showBottomBarAndFab = currentRoute in mainTabRoutes
-    val showFab = showBottomBarAndFab && currentRoute != Routes.Home.route
+    val showFab = showBottomBarAndFab && currentRoute != Routes.Home.route && currentRoute != Routes.Tools.route
 
     Scaffold(
         bottomBar = {
@@ -110,6 +141,60 @@ fun AppNavigation() {
                     onGameClick = { gameId -> navController.navigate(Routes.GameDetail.createRoute(gameId)) },
                     onPlayerClick = { playerId -> navController.navigate(Routes.PlayerDetail.createRoute(playerId)) }
                 )
+            }
+
+            composable(Routes.Tools.route) {
+                ToolsScreen(
+                    onToolClick = { route -> navController.navigate(route) }
+                )
+            }
+
+            composable(Routes.CoinFlip.route) {
+                CoinFlipScreen(onBackClick = { navController.popBackStack() })
+            }
+
+            composable(Routes.RandomNumber.route) {
+                RandomNumberScreen(onBackClick = { navController.popBackStack() })
+            }
+
+            composable(Routes.RandomLetter.route) {
+                RandomLetterScreen(onBackClick = { navController.popBackStack() })
+            }
+
+            composable(Routes.PickNames.route) {
+                PickNamesScreen(onBackClick = { navController.popBackStack() })
+            }
+
+            composable(Routes.ShuffleOrder.route) {
+                ShuffleOrderScreen(onBackClick = { navController.popBackStack() })
+            }
+
+            composable(Routes.ShuffleTeams.route) {
+                ShuffleTeamsScreen(onBackClick = { navController.popBackStack() })
+            }
+
+            composable(Routes.AssignRoles.route) {
+                AssignRolesScreen(onBackClick = { navController.popBackStack() })
+            }
+
+            composable(Routes.DiceRoller.route) {
+                DiceRollerScreen(onBackClick = { navController.popBackStack() })
+            }
+
+            composable(Routes.SpinWheel.route) {
+                SpinWheelScreen(onBackClick = { navController.popBackStack() })
+            }
+
+            composable(Routes.ScratchScoreboard.route) {
+                ScratchScoreboardScreen(onBackClick = { navController.popBackStack() })
+            }
+
+            composable(Routes.TurnTimer.route) {
+                TurnTimerScreen(onBackClick = { navController.popBackStack() })
+            }
+
+            composable(Routes.FingerPicker.route) {
+                FingerPickerScreen(onBackClick = { navController.popBackStack() })
             }
 
             composable(Routes.Games.route) {
@@ -431,16 +516,44 @@ private fun ScoreQuestBottomBar(
 ) {
     NavigationBar {
         NavigationBarItem(
-            selected = currentRoute == Routes.Home.route,
-            onClick = { onNavigate(Routes.Home.route) },
-            icon = { Icon(Icons.Filled.Home, contentDescription = null) },
-            label = { Text(stringResource(R.string.nav_home)) }
+            selected = currentRoute == Routes.Tools.route,
+            onClick = { onNavigate(Routes.Tools.route) },
+            icon = { Icon(Icons.Filled.Build, contentDescription = null) },
+            label = { Text(stringResource(R.string.nav_tools)) }
         )
         NavigationBarItem(
             selected = currentRoute == Routes.Games.route,
             onClick = { onNavigate(Routes.Games.route) },
             icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = null) },
             label = { Text(stringResource(R.string.nav_games)) }
+        )
+        NavigationBarItem(
+            selected = currentRoute == Routes.Home.route,
+            onClick = { onNavigate(Routes.Home.route) },
+            icon = {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Gold),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Home,
+                        contentDescription = null,
+                        tint = Color.Black,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            },
+            label = {
+                Text(
+                    text = stringResource(R.string.nav_home),
+                    fontWeight = FontWeight.Bold,
+                    color = Gold
+                )
+            },
+            colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
         )
         NavigationBarItem(
             selected = currentRoute == Routes.ManagePlayers.route,

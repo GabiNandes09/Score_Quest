@@ -6,15 +6,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -30,12 +26,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.rogue.scorequest.domain.model.PlayerGroup
 import com.rogue.scorequest.domain.model.ScoreSchemaType
-import com.rogue.scorequest.presentation.components.PlayerAvatarImage
+import com.rogue.scorequest.presentation.components.GroupChipRow
 import com.rogue.scorequest.presentation.components.PlayerRow
 import com.rogue.scorequest.presentation.viewmodel.AddSessionViewModel
 
@@ -67,18 +61,11 @@ fun PlayersStep(
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                 )
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(groups) { group ->
-                        GroupChip(
-                            group = group,
-                            selected = group.id == state.selectedGroupId,
-                            onClick = { viewModel.onGroupSelected(group.id) }
-                        )
-                    }
-                }
+                GroupChipRow(
+                    groups = groups,
+                    selectedGroupId = state.selectedGroupId,
+                    onGroupClick = { group -> viewModel.onGroupSelected(group.id) }
+                )
             }
 
             Row(
@@ -154,23 +141,4 @@ fun PlayersStep(
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun GroupChip(group: PlayerGroup, selected: Boolean, onClick: () -> Unit) {
-    FilterChip(
-        selected = selected,
-        onClick = onClick,
-        leadingIcon = {
-            PlayerAvatarImage(
-                avatarPath = group.photoPath,
-                nickname = group.name,
-                modifier = Modifier
-                    .size(20.dp)
-                    .clip(CircleShape)
-            )
-        },
-        label = { Text(group.name) }
-    )
 }

@@ -6,7 +6,9 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.rogue.scorequest.data.local.entity.ScoreEntryEntity
 import com.rogue.scorequest.domain.model.GamePlayCount
+import com.rogue.scorequest.domain.model.GameScoreRecord
 import com.rogue.scorequest.domain.model.PlayerCoreCounts
+import com.rogue.scorequest.domain.model.PlayerPlayCount
 import com.rogue.scorequest.domain.model.PlayerSessionResult
 import com.rogue.scorequest.domain.model.PlayerWinCount
 import kotlinx.coroutines.flow.Flow
@@ -128,4 +130,45 @@ interface ScoreEntryDao {
         """
     )
     fun getGroupMemberWins(groupId: String): Flow<List<PlayerWinCount>>
+
+    @Query(
+        """
+        SELECT se.player_id AS playerId, p.nickname AS playerName, COUNT(*) AS playCount
+        FROM score_entry se
+        INNER JOIN game_session gs ON gs.id = se.session_id
+        INNER JOIN player p ON p.id = se.player_id
+        WHERE gs.game_id = :gameId AND se.deleted_at IS NULL AND gs.deleted_at IS NULL AND p.deleted_at IS NULL
+        GROUP BY se.player_id
+        ORDER BY playCount DESC
+        LIMIT :limit
+        """
+    )
+    fun getTopPlayersByPlaysForGame(gameId: String, limit: Int): Flow<List<PlayerPlayCount>>
+
+    @Query(
+        """
+        SELECT se.player_id AS playerId, p.nickname AS playerName, COUNT(*) AS wins
+        FROM score_entry se
+        INNER JOIN game_session gs ON gs.id = se.session_id
+        INNER JOIN player p ON p.id = se.player_id
+        WHERE gs.game_id = :gameId AND se.is_winner = 1 AND se.deleted_at IS NULL AND gs.deleted_at IS NULL AND p.deleted_at IS NULL
+        GROUP BY se.player_id
+        ORDER BY wins DESC
+        LIMIT :limit
+        """
+    )
+    fun getTopPlayersByWinsForGame(gameId: String, limit: Int): Flow<List<PlayerWinCount>>
+
+    @Query(
+        """
+        SELECT gs.id AS sessionId, se.player_id AS playerId, p.nickname AS playerName, se.total_score AS score, gs.date AS date
+        FROM score_entry se
+        INNER JOIN game_session gs ON gs.id = se.session_id
+        INNER JOIN player p ON p.id = se.player_id
+        WHERE gs.game_id = :gameId AND se.total_score IS NOT NULL AND se.deleted_at IS NULL AND gs.deleted_at IS NULL AND p.deleted_at IS NULL
+        ORDER BY se.total_score DESC
+        LIMIT :limit
+        """
+    )
+    fun getTopScoresForGame(gameId: String, limit: Int): Flow<List<GameScoreRecord>>
 }

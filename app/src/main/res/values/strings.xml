@@ -6,5 +6,6 @@
     <string name="nav_games">Jogos</string>
     <string name="nav_profile">Perfil</string>
     <string name="nav_players">Jogadores</string>
+    <string name="nav_tools">Extras</string>
     <string name="add_session_fab_description">Registrar partida</string>
 </resources>

@@ -85,7 +85,19 @@ Entidades principais: `BoardGameEntity`, `UserLibraryEntryEntity` (PK = `gameId`
 
 ## Navegação e telas
 
-Bottom bar (4 abas): **Home**, **Jogos**, **Jogadores**, **Perfil** — visível só nessas 4 rotas (`mainTabRoutes` em `AppNavigation.kt`). FAB dourado sobreposto (visível junto com a bottom bar, exceto na Home) abre o wizard de registro de partida.
+Bottom bar (5 abas, nesta ordem): **Extras**, **Jogos**, **Home**, **Jogadores**, **Perfil**
+— visível só nessas 5 rotas (`mainTabRoutes` em `AppNavigation.kt`). A ordem de renderização
+em `ScoreQuestBottomBar` é escolha deliberada do usuário, reordenada mais de uma vez conforme
+o gosto (Extras — antes "Ferramentas", nome encurtado por decisão do usuário — na ponta
+esquerda, Home no meio) — não segue a ordem "natural" de quando cada aba foi adicionada ao
+código. **O item Home é visualmente destacado dos outros 4** (pedido do usuário): ícone dentro
+de um círculo dourado sólido 40dp (`Box` + `clip(CircleShape)` + `background(Gold)`, ícone
+preto por cima, maior que o ícone simples dos outros itens) e label em negrito dourado — o
+indicador de seleção padrão do `NavigationBarItem` é desligado só nesse item
+(`NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)`) pra não desenhar um
+pill de seleção por baixo do círculo dourado que já é permanente (não muda com seleção). FAB
+dourado sobreposto (visível junto com a bottom bar, exceto em Home e Extras) abre o wizard de
+registro de partida.
 
 **Configurações deixou de ser aba** (decisão do usuário) — agora é uma tela empurrada normal (`Routes.Settings`, fora de `mainTabRoutes`, some a bottom bar/FAB como qualquer tela de detalhe), acessada por um ícone de engrenagem nas `actions` da TopAppBar do Perfil (ao lado do botão "Editar"), com botão de voltar próprio. **"Gerenciar jogadores locais" trocou de lugar com ela** — antes vivia dentro de Configurações (acessada por um `TextButton`), agora é a própria aba "Jogadores" da bottom bar (`ManagePlayersScreen`, sem botão de voltar — como as outras 3 abas principais, título simples "Jogadores" na TopAppBar). `SettingsScreen`/`ManagePlayersScreen` trocaram de assinatura de acordo (`onManagePlayersClick` saiu de `SettingsScreen`; `onBackClick` saiu de `ManagePlayersScreen`, entrou em `SettingsScreen`).
 
@@ -102,7 +114,7 @@ Bottom bar (4 abas): **Home**, **Jogos**, **Jogadores**, **Perfil** — visível
 
   **Decisão consciente, divergindo do doc**: a seção 7.1 do doc de produto sugere a biblioteca **Vico** (`com.patrykandpatrick.vico`) pros gráficos de barra/linha/histograma. Mantive os componentes Compose feitos à mão (`HorizontalBarChart`, `VerticalBarChart`, `LineChart`, todos em `presentation/components/`) em vez de adotar a lib nova — não há emulador neste ambiente pra validar visualmente uma API desconhecida e ainda em evolução rápida (como o próprio doc observa), enquanto os componentes hand-rolled já são conhecidos, compilam e cobrem exatamente as cores/formas pedidas. Se quiser migrar pra Vico depois, é um passo isolado (trocar só a camada de renderização, os usecases/dados já estão prontos).
 - **Jogos**: grade de 2 colunas com cards **quadrados** (imagem preenchendo tudo + nome embaixo à esquerda). Busca/ordenação/filtro de categoria ficam escondidos atrás de um ícone de lupa (`AnimatedVisibility` expand/collapse). 3 tabs (não 4 — "Todos" foi removido): **Estante** (só status Tenho), **Desejo** (status Quero), **Jogado** (`played = true`) — texto da tab selecionada fica dourado, com transição `AnimatedContent` (fade + slide) ao trocar de tab. Ordenação: A-Z, Z-A, Recente (mais jogado recentemente primeiro, ▼), Recente reverso (nunca jogados primeiro por ordem alfabética, depois os jogados há mais tempo, ▲) — baseado em `GetLastPlayedDatesUseCase` (MAX(date) por jogo).
-- **Detalhe do jogo**: imagem de fundo do "header" (280dp, com botões voltar/editar flutuando por cima, gradiente escuro pra legibilidade) → nome + estrelas à esquerda → 3 ícones (jogadores/tempo/peso) → dropdown de status **com gradiente dourado→branco e texto preto** (`StatusDropdown`, não é o `ExposedDropdownMenuBox` padrão do M3, é um `Box` customizado com `Brush.horizontalGradient`) → checkbox "Emprestado" (só aparece se status = Tenho; campo "Emprestado para" só aparece se o checkbox estiver marcado) → card de Estatísticas com 3 ícones lado a lado (PlayArrow=vezes jogadas, Timer=horas de jogo total, AccessTime=tempo médio) → botão **"Iniciar partida ao vivo"** (abre o cronômetro pré-selecionado pra este jogo, com diálogo de conflito se já houver outra partida ativa — ver "Cronômetro de partida ao vivo" abaixo) → botão **"Configurar/Editar pontuação personalizada"** (texto muda conforme `state.hasScoreSchema`, abre `ScoreSchemaBuilderScreen` — ver seção própria abaixo) → histórico de partidas (cada linha é clicável, `onSessionClick(sessionId)`, navega pra `SessionDetail` — mesma rota/tela já usada a partir do feed de Atividades do Perfil) → **FAB** "Registrar partida" que abre o wizard **com aquele jogo pré-selecionado** (pula a etapa de escolha de jogo automaticamente na primeira entrada, via `consumeAutoAdvance()`).
+- **Detalhe do jogo**: imagem de fundo do "header" (280dp, com botões voltar/editar flutuando por cima, gradiente escuro pra legibilidade) → nome + estrelas à esquerda → 3 ícones (jogadores/tempo/peso) → dropdown de status **com gradiente dourado→branco e texto preto** (`StatusDropdown`, não é o `ExposedDropdownMenuBox` padrão do M3, é um `Box` customizado com `Brush.horizontalGradient`) → checkbox "Emprestado" (só aparece se status = Tenho; campo "Emprestado para" só aparece se o checkbox estiver marcado) → card de Estatísticas com 3 ícones lado a lado (PlayArrow=vezes jogadas, Timer=horas de jogo total, AccessTime=tempo médio) → **cards de estatísticas ricas** (ver "Estatísticas por jogo" abaixo) → botão **"Iniciar partida ao vivo"** (abre o cronômetro pré-selecionado pra este jogo, com diálogo de conflito se já houver outra partida ativa — ver "Cronômetro de partida ao vivo" abaixo) → botão **"Configurar/Editar pontuação personalizada"** (texto muda conforme `state.hasScoreSchema`, abre `ScoreSchemaBuilderScreen` — ver seção própria abaixo) → histórico de partidas (cada linha é clicável, `onSessionClick(sessionId)`, navega pra `SessionDetail` — mesma rota/tela já usada a partir do feed de Atividades do Perfil) → **FAB** "Registrar partida" que abre o wizard **com aquele jogo pré-selecionado** (pula a etapa de escolha de jogo automaticamente na primeira entrada, via `consumeAutoAdvance()`).
 - **Adicionar/Editar jogo**: mesma tela pra criar e editar (`AddEditGameViewModel` detecta pelo sentinela `gameId == "new"`); em modo edição não mostra o seletor de status (isso é gerenciado na tela de detalhe). Capa: Câmera/Galeria (captura local, via `ImageStorage`) **ou URL direta** (campo de texto + botão "Usar") — as três opções escrevem no mesmo `state.coverImagePath`/`viewModel.onCoverCaptured(...)`, sem campo novo nem lógica separada, já que `coverImageUrl`/`GameCoverImage` (Coil) sempre aceitaram tanto caminho de arquivo local quanto URL remota nessa mesma string (é assim que os jogos importados via seed/Ludopedia já funcionavam). `ImageStorage.deleteImage()` é seguro de chamar com uma URL (não existe como arquivo local, vira no-op) — troca entre os três modos não vaza arquivo nem quebra.
 - **Wizard de partida** (`presentation/screens/wizard/`): Escolher jogo → Dados da sessão (data/duração/variante/foto — `durationMinutes` pode vir pré-preenchido de um cronômetro finalizado, ver abaixo) → Jogadores (busca + criar novo) → **Pontuação** (branch: grid simples se o jogo não tem schema ou schema é `SIMPLE`; `CompositeScoringStep` — uma tela por jogador em sequência — se o schema é `COMPOSITE`; `RankingScoringStep` — todos os jogadores numa tela só, arrastável — se o schema é `RANKING`, ver seção "Pontuação personalizada" abaixo) → **Confirmação** (`ConfirmStep.kt`, também ramificada pro caso Composta: seletor de vencedor Manual, totais calculados + diálogo de empate no Automático, ou nada no Sem-vencedor; caso Ranking: lista só-leitura na ordem definida) — **conteúdo dentro de 2 `Card`s** (resumo da partida com `StatIconItem` pra data/duração; jogadores+pontuação com título dourado), coluna com `verticalScroll` pra não cortar lista longa de jogadores. Suporta edição (reaproveita as mesmas telas, `sessionId` real em vez de `"new"`) e pré-seleção de jogo (`gameId` na rota, sentinela `"none"` quando não vem de lugar nenhum).
   **Jogo travado em modo edição**: `ChooseGameStep.kt` pula automaticamente (`LaunchedEffect(state.selectedGameId, state.isEditMode)`) assim que o jogo da sessão carrega, sempre que `state.isEditMode == true` — o jogo de uma partida já salva não pode ser trocado. Como esse efeito reavalia a cada composição, a tela fica permanentemente inalcançável durante edição; por isso o "Voltar" de `SessionDataStep` (primeira tela visível nesse modo) sai do wizard inteiro em vez de voltar pra ela (`AppNavigation.kt`, condicional em `viewModel.isEditMode`).
@@ -214,6 +226,49 @@ Botões "Importar JSON" e "Exportar JSON" em Configurações — os dois lêem/e
 - **Exportar** (`ExportGamesUseCase`): lê todos os `BoardGame` (via `BoardGameRepository.getGames().first()`, sem variante "once" dedicada — não precisou, é só um `first()` na Flow existente) + todos os `GameScoreSchema` não deletados (`GameScoreSchemaRepository.getAllOnce()`, nova query — a existente `getAllCompositeSchemas()` filtra só `type = COMPOSITE`, não serve pra export completo). **Escopo deliberado**: só acervo (jogos + schemas), não é um backup completo do app — não inclui jogadores, partidas registradas, perfil. Isso é o que "exportação dos jogos existentes" pediu; um backup completo (seção 7.5 do doc de produto) é outra feature, maior, não implementada.
 - **UI de export**: fluxo em 2 passos por causa do Storage Access Framework do Android — (1) botão gera o conteúdo (`SettingsViewModel.onExportRequested()`, roda o usecase, guarda o resultado em `state.pendingExport`); (2) um `LaunchedEffect(state.pendingExport)` dispara o launcher de `ActivityResultContracts.CreateDocument("application/json")` assim que o conteúdo fica pronto — só *depois* de escolher o local é que o conteúdo já pronto é escrito nele. Nome sugerido: `scorequest_jogos.json`.
 - **UI geral**: `SettingsViewModel` guarda `isImporting`/`importResult`/`importReadError`/`isExporting`/`pendingExport`/`exportSuccessMessage`/`exportError` num `MutableStateFlow` combinado com a preferência de tema (que continua vindo de `GetThemePreferenceUseCase` via `collect` no `init`, não mais um `map` direto — precisou virar esse padrão híbrido pra não resetar esse estado a cada emissão do tema). Resultado mostrado num `AlertDialog` (contagem de adicionados/atualizados/pontuações + lista de erros, se houver, na importação; contagem exportada na exportação).
+
+## Estatísticas por jogo
+
+`domain/model/GameStats.kt` expandido (mirror do padrão já estabelecido em `PlayerStats`/
+`GroupStats`, ver seções acima) — antes só tinha `timesPlayed`/`avgDurationMinutes`/`highScore`
+(esse último nunca chegava a ser renderizado na tela), agora também: `longestSessionMinutes`
+(partida mais longa, `MAX(duration_minutes)`), `topPlayersByPlays` (ranking de quem mais jogou
+**esse jogo específico**, tipo novo `PlayerPlayCount` em `domain/model/HomeStats.kt` — mesma
+forma de `PlayerWinCount`, mas pra contagem de partidas em vez de vitórias, já que nenhum tipo
+existente cobria "jogador + contagem" sem o significado ser "vitórias"), `topPlayersByWins`
+(mirror de `ScoreEntryDao.getGroupMemberWins`, com `gs.game_id` no lugar de `gs.group_id`), e
+`topScores: List<GameScoreRecord>` (novo tipo, top 5 **maiores pontuações já registradas nesse
+jogo**, um registro por sessão/jogador — não agrupado, pode repetir jogador se ele tiver mais
+de uma pontuação no top 5 — com `sessionId` pra navegação).
+
+- **`GameSessionRepository.getGameStats`**: como agora são 7 flows (`combine()` só tem overload
+  tipado até 5 argumentos), o método monta um `GameCoreStats` privado combinando os 5
+  primeiros, depois faz um segundo `combine` com esse holder + os 2 rankings restantes — evita
+  a forma vararg/`Array<*>` do `combine`, que perderia a tipagem forte de cada campo.
+- **Novas queries** (`ScoreEntryDao.getTopPlayersByPlaysForGame`/`getTopPlayersByWinsForGame`/
+  `getTopScoresForGame`, `GameSessionDao.getLongestSessionMinutes`), todas filtrando
+  `gs.game_id = :gameId` — mesmo padrão de join/guarda de `deleted_at IS NULL` já usado em
+  todas as outras queries de estatística do projeto.
+- **`totalScore` não é uniformemente comparável entre tipos de pontuação** (é o total digitado
+  no Simples, o resultado da fórmula no Composto/Automático, os pontos por posição no Ranking
+  se ativados, ou `null` no Composto/Manual e Composto/Sem-vencedor) — mas como "maiores
+  pontuações" e "recorde" são sempre escopados a **um jogo só**, isso é seguro na prática
+  (todas as sessões de um mesmo jogo compartilham o mesmo schema, exceto se o usuário editar a
+  fórmula depois de já ter partidas registradas — caso raro, não tratado). A query de
+  `topScores` já filtra `total_score IS NOT NULL`, então jogos sem pontuação numérica (Composto
+  Manual/Sem-vencedor) simplesmente não mostram a seção "Maiores pontuações" nem "Recordes"
+  (ambas condicionais a terem dado, `GameDetailScreen.kt`).
+- **UI** (`GameDetailScreen.kt`): 4 novos `Card`s empilhados depois do card "Estatísticas" já
+  existente (mesmo padrão visual de título dourado + `HorizontalBarChart`/`BarChartEntry` já
+  usado em Home/`PlayerDetailScreen`/`GroupDetailScreen`) — **Recordes** (maior partida +
+  recorde de pontuação, cada `StatIconItem` só aparece se não-nulo), **Mais partidas jogadas**,
+  **Mais vitórias** (ambos gráfico de barras), **Maiores pontuações** (lista, não gráfico —
+  cada linha usa `PositionBadge` + nome + data relativa + pontuação, clicável via
+  `onSessionClick(record.sessionId)`, o mesmo callback já usado pelo histórico de partidas).
+  Cada card só renderiza se a lista/valor correspondente não estiver vazio — jogo com poucas
+  partidas simplesmente mostra menos cards, sem estado vazio explícito (diferente da Home, que
+  usa textos de estado vazio — aqui não fez sentido, dado que a lista de "Histórico de
+  partidas" logo abaixo já deixa claro que não há dados).
 
 ## Grupos de jogadores
 
@@ -340,6 +395,165 @@ Construtor visual completo (`GameScoreSchema` por jogo) + integração real com 
   - `ManualWinnerList` (seletor interativo de vencedor em Composta Manual) **não foi alterado** — é uma lista de escolha, não de exibição; reordenar enquanto a pessoa ainda está escolhendo atrapalharia mais do que ajudaria.
 
 Ao **editar** uma partida existente, o modo (Simples vs. Composto) é redetectado por heurística no `init` do `AddSessionViewModel` — não por um campo persistido: `useSimpleEntry = detail.scores.isNotEmpty() && detail.scores.all { it.fieldValues.isNullOrEmpty() }`. Decisão deliberada (confirmada com o usuário) de não adicionar coluna nova em `ScoreEntryEntity`, já que `DatabaseModule.kt` não tem `Migration`/`fallbackToDestructiveMigration` configurados — subir a versão do Room quebraria o banco local já em uso. Limitação aceita: se alguém abrir o formulário Composto detalhado e deixar literalmente todos os campos em branco, a heurística reabre essa sessão em modo Simples na próxima edição (caso raro).
+
+## Extras (aba "Ferramentas" — nome encurtado por decisão do usuário; 4 fases, completas)
+
+Aba dedicada a mini-ferramentas de jogatina que **não** dependem de registrar uma partida
+completa (sorteios, dados, cronômetros...). Escopo completo (12 ferramentas) foi decidido com
+o usuário e **deliberadamente separado em 4 fases** por afinidade técnica — só a Fase 1 está
+implementada até agora; as Fases 2-4 (sorteios com jogadores/grupos, dado/roleta com animação
+mais elaborada, placar avulso, cronômetro por turno, sorteio por dedo na tela) são trabalho
+futuro, não iniciado. Ver plano salvo em
+`C:\Users\gabri\.claude\plans\purrfect-marinating-tome.md` pro desenho completo das 4 fases
+antes de continuar essa feature.
+
+- **`ToolsScreen.kt`** (tela-índice da aba, `Routes.Tools`): grid 2 colunas de atalhos
+  estáticos (`ToolDestination(route, label, icon)`, lista fixa no arquivo, não vem de
+  banco/DI). **Única tela do app sem ViewModel/Koin** — decisão deliberada, já que não há
+  nenhum dado pra buscar (todo o resto do app usa 1 ViewModel por tela, confirmado antes de
+  abrir essa exceção).
+- **`presentation/components/SpinTicker.kt`** (`SpinTickerState<T>` + `rememberSpinTicker`):
+  hook compartilhado de "sorteio com suspense" — cicla valores aleatórios (via uma lambda
+  `randomValue: () -> T` fornecida por cada ferramenta) cada vez mais devagar (`delay`
+  crescente de 40ms a 220ms ao longo de 18 passos) até parar no valor final passado pra
+  `spin(final)`, sem precisar de `Animatable`/biblioteca de animação — primeiro uso de
+  `kotlin.random.Random` no projeto. Cada ferramenta só decide o que renderizar pra cada
+  valor (texto, número, letra); a cadência de tempo é 100% compartilhada. Reaproveitado por
+  `CoinFlipScreen`, `RandomNumberScreen`, `RandomLetterScreen` (todos em
+  `presentation/screens/tools/`) — cada uma: local `remember`/`rememberCoroutineScope` só,
+  sem ViewModel (não há dado persistido nem lido de lugar nenhum).
+- **Moeda** (`CoinFlipScreen.kt`): sorteia entre "Cara"/"Coroa".
+- **Número aleatório** (`RandomNumberScreen.kt`): campos min/max (texto numérico), valida
+  `min <= max` antes de habilitar o botão "Sortear".
+- **Letra aleatória** (`RandomLetterScreen.kt`): sorteia entre A-Z.
+- **FAB de "Registrar partida" não aparece na aba Extras** (`showFab` em
+  `AppNavigation.kt` ganhou mais uma exclusão, igual já tinha pra Home).
+
+**Fase 2 — sorteios com jogadores** (reaproveita `GetPlayersUseCase`/`GetPlayerGroupsUseCase`,
+já registrados, nenhum use case novo, nenhuma escrita no banco):
+
+- **`presentation/components/PlayerMultiSelectSection.kt`** (novo): busca por nome + lista de
+  checkboxes de jogadores, extraído de `AddEditGroupScreen.kt` (que foi refatorada pra usar
+  esse componente em vez do bloco inline que tinha antes) — reaproveitado pelas 4 telas novas.
+- **`presentation/components/GroupChipRow.kt`** (novo): fileira de chips de grupo (avatar +
+  nome), extraído do `GroupChip` que antes vivia só dentro de `wizard/PlayersStep.kt`
+  (refatorado pra importar daqui) — reaproveitado pelas mesmas 4 telas.
+- Cada uma das 4 telas segue o mesmo esqueleto: chips de grupo (se houver grupos) +
+  `PlayerMultiSelectSection` + campo(s) específico(s) + botão de sortear. ViewModels
+  praticamente idênticos entre si (`players`/`groups` StateFlow + `onPlayerToggled` que limpa
+  `selectedGroupId` ao editar manualmente + `onGroupSelected` que substitui a seleção inteira)
+  — duplicação pequena e deliberada entre eles (2-3 campos de state), consistente com a
+  decisão de manter cada ferramenta como tela/rota separada (ver Contexto do plano).
+- **Sorteio por nome** (`PickNamesScreen.kt`/`PickNamesViewModel.kt`): `rememberSpinTicker`
+  cicla nomes até parar em 1 jogador selecionado.
+- **Ordem de turno** (`ShuffleOrderScreen.kt`/`ShuffleOrderViewModel.kt`): ticker cicla listas
+  inteiras embaralhadas (`SpinTickerState<List<Player>>` — o hook é genérico, funciona igual
+  pra ciclar uma lista inteira em vez de um valor único) até parar numa ordem final, exibida
+  numerada com `PositionBadge` (mesmo componente já usado em Ranking/Confirmação/Detalhe de
+  partida).
+- **Sorteio de equipes** (`ShuffleTeamsScreen.kt`/`ShuffleTeamsViewModel.kt`): stepper
+  "N times" (2-12) + distribuição round-robin (`shuffled().filterIndexed { i, _ -> i % n ==
+  teamIndex }`) — sem animação de ticker aqui (resultado é N listas, não um valor único),
+  revelado instantaneamente em N `Card`s ao tocar "Sortear equipes".
+- **Sorteio de papéis** (`AssignRolesScreen.kt`/`AssignRolesViewModel.kt`): lista de texto
+  livre de papéis (adicionar/remover linha a linha) — botão "Sortear papéis" só habilita
+  quando `roles.size == jogadoresSelecionados.size`; ticker cicla embaralhamentos da lista de
+  papéis (`SpinTickerState<List<String>>`) até parar, resultado exibido como
+  `jogador.zip(papéisEmbaralhados)`.
+
+**Fase 3 — animação mais elaborada** (sem jogadores/ViewModel, só estado local — mesmo padrão
+das ferramentas genéricas da Fase 1):
+
+- **`presentation/components/EditableTextList.kt`** (novo): campo "+ Adicionar" + lista com
+  botão de excluir por linha, extraído do bloco que `AssignRolesScreen` tinha inline (que foi
+  refatorada pra usar esse componente) — reaproveitado também pela Roleta.
+- **Dados** (`DiceRollerScreen.kt`): chips pra escolher o número de lados (d4/d6/d8/d10/d12/d20)
+  + stepper pro número de dados (1-10) — `rememberSpinTicker` cicla `List<Int>` (uma rolagem
+  por dado) até parar, exibido em cards numa grade simples (`chunked(5)` + `Row`s dentro de um
+  `Column`, **não** `LazyVerticalGrid`, que quebra com "infinity height constraints" dentro de
+  uma `Column` não roláveis por altura fixa — como o número de dados é pequeno (≤10), uma
+  grade não-lazy é mais simples e evita esse problema) + total somado.
+- **Roleta** (`SpinWheelScreen.kt`): opções customizadas via `EditableTextList`, desenhada com
+  `Canvas` (`androidx.compose.foundation.Canvas`, **primeiro uso de `drawArc`/`nativeCanvas`
+  no projeto** — antes só `LineChart.kt` usava `Canvas`, só pra linha/path, nunca fatias nem
+  texto nativo) — fatias proporcionais (`drawArc(useCenter = true)`) alternando 2 cores
+  (dourado/escuro, texto preto/branco por cima pra contraste), rótulo de cada fatia desenhado
+  via `nativeCanvas.drawText` com `translate`+`rotate` pra ficar radial. **Rotação real do
+  ponteiro é calculada matematicamente antes de girar**: escolhe o índice vencedor primeiro
+  (`Random.nextInt`), calcula o ângulo de rotação final que traz o centro daquela fatia até o
+  topo (onde fica o ponteiro "▼" fixo), soma `+ 5*360°` de voltas extras só pro efeito visual, e
+  anima com `Animatable<Float>` + `tween(3200ms, FastOutSlowInEasing)` — o resultado nunca é
+  "lido" da posição final da roda, é decidido antes e a animação só ilustra ele. A roleta
+  alterna **3 tons** (dourado, âmbar `#B8860B`, escuro `#2C2C2C`) em vez de 2, pra diferenciar
+  fatias vizinhas melhor com muitas opções — pedido do usuário depois do primeiro teste.
+  **Layout travado**: a roda + resultado ficam num bloco fixo no topo (fora de qualquer
+  `verticalScroll`), o botão "Girar" fixo na base, e só a lista de opções (`EditableTextList`)
+  rola entre os dois — outro ajuste de usabilidade pedido depois do primeiro teste, pra roda e
+  botão nunca saírem da tela conforme a lista de opções cresce.
+  **⚠️ Bug já corrigido, cuidado ao reintroduzir**: o ponteiro "▼" usava
+  `Modifier.padding(top = (-4).dp)` pra subir um pouco — `padding` **não aceita valor
+  negativo** (`IllegalArgumentException: Padding must be non-negative`, só estourava depois de
+  ter 2+ opções, quando a roda de fato renderizava) — o jeito certo pra deslocar um composable
+  pra fora do fluxo normal (inclusive em direção negativa) é `Modifier.offset(y = ...)`, não
+  `padding`.
+
+**Fase 4 — utilidades e território tecnicamente novo** (todas sem ViewModel/DI, estado local só
+— mesmo padrão das ferramentas genéricas; nenhuma persiste nada, tudo reseta ao sair da tela):
+
+- **Placar avulso** (`ScratchScoreboardScreen.kt`): jogadores de texto livre (não precisam ser
+  cadastrados — ferramenta rápida, sem fricção), cada um com contador +/- (pode ficar
+  negativo, sem clamp — alguns jogos têm penalidade) e botão de remover, mais um "Zerar
+  placar" geral. `LazyColumn` com `key = { it.id }` (UUID gerado na criação) pra manter
+  identidade estável entre recomposições ao incrementar/decrementar.
+- **Cronômetro por turno** (`TurnTimerScreen.kt`): 2 modos na mesma tela (`hasStarted`
+  boolean) — modo configuração (`EditableTextList` de nomes + stepper de segundos por turno,
+  10-300s) e modo cronômetro (nome do jogador da vez em destaque, contagem regressiva,
+  `LinearProgressIndicator`, Pausar/Retomar, Próximo manual, Encerrar volta pra configuração).
+  Tick via `LaunchedEffect(isRunning) { while (isRunning) { delay(1000); ... } }` — mesmo
+  espírito do relógio ao vivo (`HomeScreen.ActiveTimerBanner`), só que contando pra baixo e
+  fechando o turno automaticamente ao chegar em zero (`currentIndex = (currentIndex + 1) %
+  players.size`).
+- **Dedo na tela** (`FingerPickerScreen.kt`) — **item de maior risco técnico do plano,
+  primeiro rastreio multi-toque do projeto**: `Modifier.pointerInput(Unit) {
+  awaitPointerEventScope { while (true) { awaitPointerEvent() ... } } }` no `Box` de tela
+  cheia, atualizando um `Map<PointerId, Offset>` a cada evento (adiciona no map quando
+  `change.pressed`, remove quando solto) — essa é a API de baixo nível necessária pra
+  múltiplos dedos simultâneos; os gesture detectors prontos do Compose
+  (`detectDragGestures`/`detectTapGestures`, já usados em `RankingScoringStep.kt`) só cobrem 1
+  ponteiro por vez. Interpretação deliberada de "dedos parados": estabilidade do **conjunto**
+  de ponteiros (ninguém encostou/soltou), não ausência de micro-movimento de cada dedo —
+  rastrear "sem tremer" de verdade seria bem mais complexo e não traz benefício real pro caso
+  de uso. **Só dá pra validar direito com teste manual no device físico com múltiplos
+  dedos/pessoas reais** — não há como simular multi-touch de verdade via `adb`.
+  - **Máquina de estados** (revisada a pedido do usuário depois do primeiro teste, pra melhorar
+    a animação): `touches` (ao vivo) → `lockedPositions` (congelado) → resultado. Assim que
+    `touches.size >= 2`, um `LaunchedEffect(touches.keys, isLocked)` inicia uma contagem de
+    **5s** (`repeat(5) { delay(1000); waitSecondsLeft-- }` — reinicia do zero se algum dedo
+    encostar/soltar nesse meio tempo, já que `touches.keys` muda e recria o efeito). Ao
+    zerar, `lockedPositions = touches` e `isLocked = true` — a partir daí o loop de
+    `awaitPointerEvent()` **para de atualizar `touches`** (só continua checando se **todos**
+    os dedos soltaram, pra liberar um novo sorteio) — isso mantém o sorteio e o resultado
+    estáveis mesmo se alguém tirar/encostar outro dedo no meio da animação.
+  - **Animação de sorteio reaproveita o `SpinTicker`** (mesmo hook de outras ferramentas,
+    generalizado aqui pra `T = PointerId?`): `rememberSpinTicker(lockedPositions.keys,
+    randomValue = { lockedPositions.keys.randomOrNull() })`, disparado num
+    `LaunchedEffect(lockedPositions) { ticker.spin(lockedPositions.keys.random()) }` — durante
+    o `spin()`, cada dedo travado é desenhado, mas só o que bate com `ticker.current` fica na
+    cor dourada cheia (os outros ficam semitransparentes) — é isso que dá o efeito de "cor
+    circulando" entre os dedos até desacelerar e parar no sorteado.
+  - **Resultado**: quando `!ticker.isSpinning`, só o dedo vencedor (`lockedPositions[winnerId]`)
+    continua sendo desenhado — os outros somem da tela — com o círculo animando
+    (`animateDpAsState`) de 72dp pra **140dp**. Reset automático: assim que **todos** os dedos
+    saem da tela (`event.changes.none { it.pressed }` enquanto `isLocked`), tudo volta pro
+    estado inicial pra um novo sorteio.
+  - **8 cores distintas** (`FINGER_COLORS`, pedido do usuário): cada dedo recebe uma cor pela
+    ordem em que encostou (`colorForIndex(index) = FINGER_COLORS[index % 8]`, calculado sobre
+    `touches.entries`/`lockedPositions.entries` — `Map` em Kotlin preserva ordem de inserção,
+    então o índice é estável enquanto o dedo não solta) — dourado continua sendo a 1ª cor, as
+    outras 7 cobrem o espectro (vermelho/laranja/verde/ciano/azul/roxo/rosa) pra ficar fácil
+    diferenciar visualmente vários dedos ao mesmo tempo. Durante o sorteio, cada dedo mantém a
+    própria cor mas só o "aceso" no momento fica em opacidade cheia; o resultado final mostra o
+    vencedor na cor que já era dele (não vira dourado à força), só maior.
 
 ## Tema
 

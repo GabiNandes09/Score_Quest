@@ -99,6 +99,9 @@ interface GameSessionDao {
     @Query("SELECT AVG(duration_minutes) FROM game_session WHERE game_id = :gameId AND deleted_at IS NULL")
     fun getAvgDurationForGame(gameId: String): Flow<Double?>
 
+    @Query("SELECT MAX(duration_minutes) FROM game_session WHERE game_id = :gameId AND deleted_at IS NULL")
+    fun getLongestSessionMinutes(gameId: String): Flow<Int?>
+
     @Query(
         """
         SELECT game_id AS gameId, MAX(date) AS lastPlayedDate

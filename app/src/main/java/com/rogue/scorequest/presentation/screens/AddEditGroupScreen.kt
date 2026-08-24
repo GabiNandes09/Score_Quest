@@ -2,13 +2,9 @@ package com.rogue.scorequest.presentation.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -35,7 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rogue.scorequest.presentation.components.ImagePickerSection
-import com.rogue.scorequest.presentation.components.PlayerRow
+import com.rogue.scorequest.presentation.components.PlayerMultiSelectSection
 import com.rogue.scorequest.presentation.viewmodel.AddEditGroupViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -50,11 +46,6 @@ fun AddEditGroupScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val players by viewModel.players.collectAsStateWithLifecycle()
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var query by remember { mutableStateOf("") }
-
-    val filteredPlayers = remember(players, query) {
-        players.filter { query.isBlank() || it.nickname.contains(query, ignoreCase = true) }
-    }
 
     LaunchedEffect(state.saved) {
         if (state.saved) onBackClick()
@@ -101,28 +92,12 @@ fun AddEditGroupScreen(
                 style = MaterialTheme.typography.labelLarge
             )
 
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Buscar por nome") },
-                singleLine = true
+            PlayerMultiSelectSection(
+                players = players,
+                selectedIds = state.selectedMemberIds,
+                onToggle = viewModel::onMemberToggled,
+                modifier = Modifier.fillMaxWidth()
             )
-
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(240.dp),
-                contentPadding = PaddingValues(vertical = 4.dp)
-            ) {
-                items(filteredPlayers) { player ->
-                    PlayerRow(
-                        player = player,
-                        selected = player.id in state.selectedMemberIds,
-                        onToggle = { viewModel.onMemberToggled(player.id) }
-                    )
-                }
-            }
 
             Button(
                 onClick = viewModel::save,

@@ -69,4 +69,18 @@ sealed class Routes(
     }
 
     data object LiveMatchChooseGame : Routes("live_match_choose_game")
+
+    data object Tools : Routes("tools")
+    data object CoinFlip : Routes("tools/coin_flip")
+    data object RandomNumber : Routes("tools/random_number")
+    data object RandomLetter : Routes("tools/random_letter")
+    data object PickNames : Routes("tools/pick_names")
+    data object ShuffleOrder : Routes("tools/shuffle_order")
+    data object ShuffleTeams : Routes("tools/shuffle_teams")
+    data object AssignRoles : Routes("tools/assign_roles")
+    data object DiceRoller : Routes("tools/dice_roller")
+    data object SpinWheel : Routes("tools/spin_wheel")
+    data object ScratchScoreboard : Routes("tools/scratch_scoreboard")
+    data object TurnTimer : Routes("tools/turn_timer")
+    data object FingerPicker : Routes("tools/finger_picker")
 }
