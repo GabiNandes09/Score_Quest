@@ -17,6 +17,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -188,6 +189,22 @@ fun ConfirmStep(
             onPickManually = viewModel::resolveTieManually
         )
     }
+
+    state.groupDriftPrompt?.let { prompt ->
+        GroupDriftDialog(
+            groupName = prompt.groupName,
+            onUpdateGroup = viewModel::onUpdateGroup,
+            onKeepAsIs = viewModel::onKeepGroupAsIs,
+            onCreateNew = viewModel::onCreateNewGroupFromDrift
+        )
+    }
+
+    if (state.offerCreateGroup) {
+        GroupCreateOfferDialog(
+            onCreate = viewModel::onCreateGroupFromSelection,
+            onSkip = viewModel::onSkipGroupCreation
+        )
+    }
 }
 
 @Composable
@@ -305,4 +322,92 @@ private fun TieBreakDialog(
             dismissButton = { TextButton(onClick = { showManualPicker = false }) { Text("Voltar") } }
         )
     }
+}
+
+@Composable
+private fun GroupDriftDialog(
+    groupName: String,
+    onUpdateGroup: () -> Unit,
+    onKeepAsIs: () -> Unit,
+    onCreateNew: (String) -> Unit
+) {
+    var showNameInput by remember { mutableStateOf(false) }
+    var newGroupName by remember { mutableStateOf("") }
+
+    if (!showNameInput) {
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text("Grupo diferente") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Os jogadores selecionados são diferentes de \"$groupName\". O que você quer fazer?")
+                    TextButton(onClick = onUpdateGroup, modifier = Modifier.fillMaxWidth()) {
+                        Text("Atualizar grupo")
+                    }
+                    TextButton(onClick = onKeepAsIs, modifier = Modifier.fillMaxWidth()) {
+                        Text("Manter como está")
+                    }
+                    TextButton(onClick = { showNameInput = true }, modifier = Modifier.fillMaxWidth()) {
+                        Text("Criar novo grupo")
+                    }
+                }
+            },
+            confirmButton = {}
+        )
+    } else {
+        AlertDialog(
+            onDismissRequest = { showNameInput = false },
+            title = { Text("Nome do novo grupo") },
+            text = {
+                OutlinedTextField(
+                    value = newGroupName,
+                    onValueChange = { newGroupName = it },
+                    label = { Text("Nome") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { onCreateNew(newGroupName) }, enabled = newGroupName.isNotBlank()) {
+                    Text("Criar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showNameInput = false }) { Text("Voltar") }
+            }
+        )
+    }
+}
+
+@Composable
+private fun GroupCreateOfferDialog(
+    onCreate: (String) -> Unit,
+    onSkip: () -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = {},
+        title = { Text("Criar grupo?") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Você selecionou vários jogadores. Quer salvar esse conjunto como um grupo pra usar de novo depois?")
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Nome do grupo") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onCreate(name) }, enabled = name.isNotBlank()) {
+                Text("Criar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onSkip) { Text("Pular") }
+        }
+    )
 }

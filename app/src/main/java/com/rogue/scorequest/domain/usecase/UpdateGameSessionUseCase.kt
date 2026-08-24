@@ -16,6 +16,7 @@ class UpdateGameSessionUseCase(
         durationMinutes: Int,
         variantOrExpansion: String?,
         photoUri: String?,
+        groupId: String?,
         createdAt: LocalDateTime,
         scores: List<ScoreInput>
     ) {
@@ -27,6 +28,7 @@ class UpdateGameSessionUseCase(
             durationMinutes = durationMinutes,
             variantOrExpansion = variantOrExpansion,
             photoUri = photoUri,
+            groupId = groupId,
             participantIds = scores.map { it.playerId },
             createdAt = createdAt,
             updatedAt = now

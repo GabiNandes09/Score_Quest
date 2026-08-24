@@ -108,4 +108,23 @@ interface GameSessionDao {
         """
     )
     fun getLastPlayedDates(): Flow<List<GameLastPlayed>>
+
+    @Query("SELECT COUNT(*) FROM game_session WHERE group_id = :groupId AND deleted_at IS NULL")
+    fun getGroupSessionCount(groupId: String): Flow<Int>
+
+    @Query("SELECT SUM(duration_minutes) FROM game_session WHERE group_id = :groupId AND deleted_at IS NULL")
+    fun getGroupTotalMinutes(groupId: String): Flow<Int?>
+
+    @Query(
+        """
+        SELECT gs.game_id AS gameId, bg.name AS gameName, COUNT(*) AS playCount
+        FROM game_session gs
+        INNER JOIN board_game bg ON bg.id = gs.game_id
+        WHERE gs.group_id = :groupId AND gs.deleted_at IS NULL
+        GROUP BY gs.game_id
+        ORDER BY playCount DESC
+        LIMIT :limit
+        """
+    )
+    fun getGroupTopGames(groupId: String, limit: Int): Flow<List<GamePlayCount>>
 }

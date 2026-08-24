@@ -77,7 +77,7 @@ Em telas com `Column { LazyColumn(Modifier.fillMaxSize()) {...}; Button(...) }`,
 
 ## Banco de dados
 
-7 entidades: `BoardGameEntity`, `UserLibraryEntryEntity` (PK = `gameId`, um usuário local só), `PlayerEntity`, `GameSessionEntity`, `ScoreEntryEntity` (PK composta `session_id`+`player_id`), `UserProfileEntity` (linha única, id fixo `"local"`), `FavoriteGameEntity` (máx. 3, ver `SetFavoriteGameUseCase`).
+Entidades principais: `BoardGameEntity`, `UserLibraryEntryEntity` (PK = `gameId`, um usuário local só), `PlayerEntity`, `GameSessionEntity`, `ScoreEntryEntity` (PK composta `session_id`+`player_id`), `UserProfileEntity` (linha única, id fixo `"local"`), `FavoriteGameEntity` (máx. 3, ver `SetFavoriteGameUseCase`), mais `GameScoreSchemaEntity`, `ActiveTimerEntity`, `PlayerGroupEntity`/`PlayerGroupMemberEntity` (ver seções próprias). `version = 3` (subiu 2→3 com `MIGRATION_2_3`, ver "Grupos de jogadores" abaixo).
 
 **Lacunas do documento de produto preenchidas durante a implementação**: `UserProfileEntity` e `FavoriteGameEntity` não estavam na seção 4.2 do doc mas são necessárias pras telas de Perfil (7.4) — foram adicionadas como extensão natural.
 
@@ -110,7 +110,7 @@ Bottom bar (4 abas): **Home**, **Jogos**, **Jogadores**, **Perfil** — visível
 - **Detalhe de partida** (`SessionDetailScreen.kt`, aberto ao tocar num item de histórico — na Home, no detalhe do jogo ou nas Atividades do Perfil): **mesmo padrão de 2 `Card`s do `ConfirmStep`** (resumo com `StatIconItem` pra data/duração + variante/foto opcionais; jogadores+pontuação com título dourado), coluna com `verticalScroll`. As duas telas mostram essencialmente o mesmo tipo de conteúdo (dados da partida + placar) em momentos diferentes (confirmando antes de salvar vs. revisando depois de salvo) — **manter os dois em sincronia visual se um dos dois for alterado**, já corrigi uma vez uma divergência entre eles (`SessionDetailScreen` tinha ficado com o layout antigo, só `Text` solto sem `Card`, depois do `ConfirmStep` ser atualizado).
 - **Perfil**: favoritos (editável, máx. 3, com diálogo de confirmação pra substituir o mais antigo) + Atividades (lista paginada via Paging 3 / `LazyPagingItems`).
 - **Configurações** (acessada pelo ícone no Perfil, não é mais aba): toggle de tema, botões **"Importar JSON"** (`OutlinedButton` + `Icons.Filled.FileDownload`) e **"Exportar JSON"** (`OutlinedButton` + `Icons.Filled.FileUpload`, mesmo padrão visual) — ver seção "Importação/exportação de jogos via JSON" abaixo.
-- **Jogadores** (aba da bottom bar, era "Gerenciar jogadores locais" dentro de Configurações — fica **antes** do Perfil na bottom bar): **grid de 2 colunas** (`ManagePlayersScreen.kt`, mesmo padrão visual da tela Jogos) — cada jogador é um `Card` quadrado (`aspectRatio(1f)`) com `PlayerAvatarImage` preenchendo tudo + nome abaixo, fora do card. Busca por nome fica **escondida** atrás de um ícone de lupa na TopAppBar (`AnimatedVisibility` expand/collapse, mesmo padrão da tela Jogos), e o botão de adicionar também virou `TextButton` "Adicionar Jogador" na TopAppBar (em vez do campo+botão inline de antes). `ManagePlayersViewModel` voltou a ser só leitura (`players: StateFlow<List<Player>>`) — criar/editar/excluir jogador saiu daqui, ver `AddEditPlayerScreen` abaixo. Cada card clicável abre `PlayerDetailScreen`.
+- **Jogadores** (aba da bottom bar, era "Gerenciar jogadores locais" dentro de Configurações — fica **antes** do Perfil na bottom bar): `ManagePlayersScreen.kt` agora tem **2 sub-abas** (`SecondaryTabRow` + `AnimatedContent`, mesmo padrão de fade+slide da tela Jogos, estado da tab local — `selectedTab`, não no ViewModel, já que não há filtro compartilhado entre elas): **Jogadores** e **Grupos** (ver seção "Grupos de jogadores" abaixo). Ambas são **grid de 2 colunas** (mesmo padrão visual da tela Jogos) — cada item é um `Card` quadrado (`aspectRatio(1f)`) com `PlayerAvatarImage` preenchendo tudo + nome abaixo, fora do card. Busca por nome fica **escondida** atrás de um ícone de lupa na TopAppBar (`AnimatedVisibility` expand/collapse), filtrando a lista da tab ativa; o botão de adicionar na TopAppBar também troca de texto/ação conforme a tab ("Adicionar Jogador"/"Adicionar Grupo"). `ManagePlayersViewModel` expõe `players` e `groups`, ambos só leitura — criar/editar/excluir vive nas telas dedicadas. Card de jogador clicável abre `PlayerDetailScreen`; card de grupo abre `GroupDetailScreen`.
 - **Foto de perfil do jogador** (`Player.avatarPath: String?`, mesma dualidade caminho-local-ou-URL de `BoardGame.coverImageUrl`): **reaproveita a coluna Room `avatar_color`** de `PlayerEntity` — esse campo existia desde o início mas nunca foi de fato usado (só plumbing morto, confirmado por busca antes de mexer) —, só o nome do símbolo Kotlin mudou (`avatarColor` → `avatarPath`), a coluna do banco continua se chamando `avatar_color`. Escolha deliberada pra não precisar de `Migration` nova (mesma cautela já registrada em "Cronômetro de partida ao vivo" e "Pontuação Ranking" — o projeto não usa `fallbackToDestructiveMigration` e já tem dado real do usuário). Renderizado por `PlayerAvatarImage.kt` (novo, espelha `GameCoverImage.kt`: `AsyncImage` se houver `avatarPath`, senão um quadrado com a primeira letra do nome).
 - **`ImagePickerSection.kt`** (novo, `presentation/components/`): o bloco Câmera/Galeria/URL que só existia inline em `AddEditGameScreen` foi extraído pra um componente compartilhado — `AddEditGameScreen` foi refatorada pra usá-lo, e a nova `AddEditPlayerScreen` usa o mesmo componente pra foto de perfil. Mesmo contrato de sempre: as três formas de capturar escrevem no mesmo `String?` (caminho local via `ImageStorage.persistImage` ou URL direta), sem branch nenhum no consumidor.
 - **Criar/editar/excluir jogador** (`AddEditPlayerScreen.kt` + `AddEditPlayerViewModel.kt`, rota `add_edit_player/{playerId}` com sentinela `"new"` — mesmo padrão de `AddEditGameScreen`/`AddEditGameViewModel`): tela única cobre os dois modos, `ImagePickerSection` no topo, campo de nome, botão "Salvar", e (só em modo edição) botão "Excluir jogador" com diálogo de confirmação — a exclusão saiu do grid e passou a viver só dentro da edição. Exclusão continua bloqueada se o jogador tem histórico de partidas (`DeletePlayerUseCase`, erro mostrado num `AlertDialog`). Mesma limpeza de imagem órfã dos outros 3 fluxos que capturam imagem (guarda `originalAvatarPath`, só apaga arquivo antigo depois do save confirmar).
@@ -214,6 +214,95 @@ Botões "Importar JSON" e "Exportar JSON" em Configurações — os dois lêem/e
 - **Exportar** (`ExportGamesUseCase`): lê todos os `BoardGame` (via `BoardGameRepository.getGames().first()`, sem variante "once" dedicada — não precisou, é só um `first()` na Flow existente) + todos os `GameScoreSchema` não deletados (`GameScoreSchemaRepository.getAllOnce()`, nova query — a existente `getAllCompositeSchemas()` filtra só `type = COMPOSITE`, não serve pra export completo). **Escopo deliberado**: só acervo (jogos + schemas), não é um backup completo do app — não inclui jogadores, partidas registradas, perfil. Isso é o que "exportação dos jogos existentes" pediu; um backup completo (seção 7.5 do doc de produto) é outra feature, maior, não implementada.
 - **UI de export**: fluxo em 2 passos por causa do Storage Access Framework do Android — (1) botão gera o conteúdo (`SettingsViewModel.onExportRequested()`, roda o usecase, guarda o resultado em `state.pendingExport`); (2) um `LaunchedEffect(state.pendingExport)` dispara o launcher de `ActivityResultContracts.CreateDocument("application/json")` assim que o conteúdo fica pronto — só *depois* de escolher o local é que o conteúdo já pronto é escrito nele. Nome sugerido: `scorequest_jogos.json`.
 - **UI geral**: `SettingsViewModel` guarda `isImporting`/`importResult`/`importReadError`/`isExporting`/`pendingExport`/`exportSuccessMessage`/`exportError` num `MutableStateFlow` combinado com a preferência de tema (que continua vindo de `GetThemePreferenceUseCase` via `collect` no `init`, não mais um `map` direto — precisou virar esse padrão híbrido pra não resetar esse estado a cada emissão do tema). Resultado mostrado num `AlertDialog` (contagem de adicionados/atualizados/pontuações + lista de erros, se houver, na importação; contagem exportada na exportação).
+
+## Grupos de jogadores
+
+Conjuntos nomeados de 2+ jogadores (nome + foto opcional) que funcionam como atalho de
+seleção ao registrar uma partida, com estatísticas próprias (partidas jogadas, tempo total,
+ranking de vitórias dos membros, jogos mais jogados) filtradas pelas partidas linkadas àquele
+grupo. Feature nova do zero (`version 2 → 3`, `MIGRATION_2_3` em
+`data/local/database/Migrations.kt`) — primeiro relacionamento N:N do projeto.
+
+- **Schema**: `player_group` (`PlayerGroupEntity`: id/name/photo_path/auditáveis, mesmo padrão
+  de `Player`) + `player_group_member` (`PlayerGroupMemberEntity`, tabela de junção nova, PK
+  composta `group_id`+`player_id` com `ForeignKey` real pras duas tabelas — como é criada do
+  zero na migração, os FKs entram sem problema). `PlayerGroupWithMembersEntity` (`@Embedded` +
+  `@Relation` com `@Junction`, primeiro uso de `@Junction` no projeto) resolve a lista de
+  `PlayerEntity` membros a partir da tabela de ligação.
+- **`game_session.group_id`** (nova coluna, nullable, via `ALTER TABLE ADD COLUMN`):
+  **deliberadamente sem `ForeignKey`** na anotação `@Entity` — o SQLite não permite acrescentar
+  uma constraint FK numa tabela já existente por `ALTER TABLE` (só em `CREATE TABLE`), e
+  recriar a tabela inteira só pra isso seria desnecessário pra uma referência que é só
+  apresentacional. Consequência aceita: exclusão de grupo é **livre, sem bloqueio**
+  (`DeletePlayerGroupUseCase`, diferente de `DeletePlayerUseCase` que bloqueia por histórico) —
+  se o grupo referenciado por uma partida antiga for excluído depois, o `group_id` fica órfão e
+  a UI trata como "sem grupo". `SessionWithScoresEntity` ganhou um `@Relation` opcional
+  (`parentColumn = "group_id"`) pro grupo, e `SessionWithDetails.groupName` é populado a partir
+  dele sem query adicional — Room resolve `@Relation` só por uma segunda `SELECT ... WHERE id
+  IN (...)`, não precisa da FK pra isso.
+- **Camada de domínio/repositório/use cases**: mirror exato do padrão de `Player`
+  (`PlayerGroup`, `PlayerGroupRepository`, `Get/Create/Update/DeletePlayerGroupUseCase`).
+  `FindGroupWithExactMembersUseCase` compara conjuntos de membros **em Kotlin**
+  (`getGroupsOnce().find { it.memberIds.toSet() == memberIds }`), não em SQL — número de
+  grupos esperado é pequeno o suficiente pra não precisar de query dedicada.
+- **Aba Grupos** (`ManagePlayersScreen.kt`, ver seção "Navegação e telas" acima): grid igual à
+  de Jogadores, card clicável abre `GroupDetailScreen`. **Criar/editar/excluir**
+  (`AddEditGroupScreen.kt`/`AddEditGroupViewModel.kt`, rota `add_edit_group/{groupId}` com
+  sentinela `"new"`, mirror de `AddEditPlayerScreen`): `ImagePickerSection` pra foto + campo de
+  nome + seletor de membros (`PlayerRow` — checkbox + nome, **extraído** de
+  `wizard/PlayersStep.kt` pra `presentation/components/PlayerRow.kt`, reaproveitado nos dois
+  lugares — só aqui ganhou busca por nome local em cima da lista, o `PlayersStep` do wizard
+  continua sem busca) + botão Salvar (`enabled` exige nome preenchido **e** 2+ membros) + (modo
+  edição) "Excluir grupo" sem diálogo de bloqueio, já que exclusão é livre.
+- **Estatísticas de grupo** (`domain/model/GroupStats.kt`, mirror de `PlayerStats`, mas
+  filtrado por `game_session.group_id = :groupId` em vez de por jogador): partidas
+  jogadas/tempo total (`GameSessionDao.getGroupSessionCount`/`getGroupTotalMinutes`), jogos
+  mais jogados (`getGroupTopGames`, mirror de `getTopPlayedGames`), ranking de vitórias dos
+  membros **dentro das partidas do grupo** (`ScoreEntryDao.getGroupMemberWins`, mirror de
+  `getTopPlayersByWins`, mesmo shape `PlayerWinCount` já usado na Home). `favoriteGame` = jogo
+  mais jogado (não mais vencido — quem vence é jogador, não o grupo), sem query separada.
+  `GroupDetailScreen.kt` (`GroupDetailViewModel`) mostra isso no mesmo estilo visual de
+  `PlayerDetailScreen` (avatar central, `HorizontalBarChart` reaproveitado), mas **sem**
+  "vitórias"/"taxa de vitória" no card principal — esses conceitos não fazem sentido pro
+  grupo em si, só pra seus membros individualmente (por isso o card "Mais vitórias no grupo").
+- **Selecionar grupo no wizard** (`PlayersStep.kt`): se existem grupos, uma `LazyRow` de
+  `FilterChip` (avatar + nome) aparece acima da lista de jogadores. Tocar num grupo
+  não-selecionado (`AddSessionViewModel.onGroupSelected`) **substitui** `selectedPlayerIds`
+  pelos membros do grupo e marca `AddSessionState.selectedGroupId`; tocar de novo no chip já
+  ativo só desmarca o rastreamento (`selectedGroupId = null`), sem mexer na seleção de
+  jogadores. A partir daí a lista de checkboxes continua **totalmente editável**
+  (`onPlayerToggled` **não** limpa `selectedGroupId`) — é essa divergência entre "grupo de
+  origem" e "seleção atual" que alimenta a reconciliação no save.
+- **Reconciliação ao salvar** (`AddSessionViewModel.save()`): antes de persistir, roda um
+  algoritmo unificado — a checagem de coincidência acontece **sempre primeiro**, não só
+  quando nenhum grupo foi selecionado:
+  1. `FindGroupWithExactMembersUseCase(selectedIds)` busca em **todos** os grupos (não só o
+     originalmente selecionado). Se achar — mesmo que seja um grupo diferente do que foi
+     tocado no wizard, ou nenhum grupo tenha sido tocado — **adota automaticamente, sem
+     diálogo nenhum**. Essa é a correção mais importante do design: se o usuário parte do
+     grupo A mas edita a seleção até ela bater exatamente com o grupo B (pré-existente), a
+     partida linka em B, não em A, sem perguntar nada.
+  2. Se não achou match e `selectedGroupId != null` (partiu de um grupo, divergiu, e a
+     divergência não virou nenhum outro grupo existente): mostra `GroupDriftDialog`
+     (`ConfirmStep.kt`, mesmo padrão não-dispensável do `TieBreakDialog` já existente) com 3
+     opções — **Atualizar grupo** (`UpdatePlayerGroupUseCase` substitui os membros do grupo
+     original pelos atuais), **Manter como está** (grupo não muda, mas a partida ainda linka
+     nele), **Criar novo grupo** (sub-passo pedindo nome, `CreatePlayerGroupUseCase`, grupo
+     original fica intocado).
+  3. Se não achou match, `selectedGroupId == null` e 2+ jogadores selecionados: mostra
+     `GroupCreateOfferDialog` (nome + "Criar"/"Pular").
+  4. Menos de 2 jogadores: salva sem grupo, sem diálogo.
+
+  Implementação: `scoreInputs` já calculado fica guardado em `pendingScoreInputs` (campo
+  privado do ViewModel, não em `AddSessionState` — não precisa renderizar) até a decisão ser
+  tomada; `persistSession(...)` privado é o único lugar que de fato chama
+  `Save/UpdateGameSessionUseCase` e seta `state.saved = true` — o
+  `LaunchedEffect(state.saved) { onSaved() }` que já existia em `ConfirmStep.kt` não precisou
+  mudar, porque continua só disparando quando a gravação de fato acontece (agora sempre depois
+  de qualquer diálogo ser resolvido). `SaveGameSessionUseCase`/`UpdateGameSessionUseCase`
+  ganharam parâmetro `groupId: String?`.
+- **Exibição no detalhe da partida**: `SessionDetailScreen.kt` mostra "Grupo: {nome}" no Card
+  de resumo (mesmo estilo da linha de variante), condicional a `SessionWithDetails.groupName`.
 
 ## Pontuação personalizada (seção 8 do doc de produto)
 

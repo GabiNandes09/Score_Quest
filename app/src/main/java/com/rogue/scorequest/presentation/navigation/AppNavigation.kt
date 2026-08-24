@@ -33,11 +33,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rogue.scorequest.R
 import com.rogue.scorequest.domain.model.ScoreSchemaType
 import com.rogue.scorequest.presentation.screens.AddEditGameScreen
+import com.rogue.scorequest.presentation.screens.AddEditGroupScreen
 import com.rogue.scorequest.presentation.screens.AddEditPlayerScreen
 import com.rogue.scorequest.presentation.screens.EditFavoritesScreen
 import com.rogue.scorequest.presentation.screens.EditProfileScreen
 import com.rogue.scorequest.presentation.screens.GameDetailScreen
 import com.rogue.scorequest.presentation.screens.GamesScreen
+import com.rogue.scorequest.presentation.screens.GroupDetailScreen
 import com.rogue.scorequest.presentation.screens.HomeScreen
 import com.rogue.scorequest.presentation.screens.ManagePlayersScreen
 import com.rogue.scorequest.presentation.screens.PlayerDetailScreen
@@ -199,7 +201,9 @@ fun AppNavigation() {
             composable(Routes.ManagePlayers.route) {
                 ManagePlayersScreen(
                     onPlayerClick = { playerId -> navController.navigate(Routes.PlayerDetail.createRoute(playerId)) },
-                    onAddPlayerClick = { navController.navigate(Routes.AddEditPlayer.createRoute()) }
+                    onAddPlayerClick = { navController.navigate(Routes.AddEditPlayer.createRoute()) },
+                    onGroupClick = { groupId -> navController.navigate(Routes.GroupDetail.createRoute(groupId)) },
+                    onAddGroupClick = { navController.navigate(Routes.AddEditGroup.createRoute()) }
                 )
             }
 
@@ -222,6 +226,29 @@ fun AppNavigation() {
                 val playerId = entry.arguments?.getString("playerId") ?: Routes.AddEditPlayer.NEW_PLAYER
                 AddEditPlayerScreen(
                     playerId = playerId,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = Routes.GroupDetail.route,
+                arguments = listOf(navArgument("groupId") { type = NavType.StringType })
+            ) { entry ->
+                val groupId = entry.arguments?.getString("groupId").orEmpty()
+                GroupDetailScreen(
+                    groupId = groupId,
+                    onBackClick = { navController.popBackStack() },
+                    onEditClick = { editGroupId -> navController.navigate(Routes.AddEditGroup.createRoute(editGroupId)) }
+                )
+            }
+
+            composable(
+                route = Routes.AddEditGroup.route,
+                arguments = listOf(navArgument("groupId") { type = NavType.StringType })
+            ) { entry ->
+                val groupId = entry.arguments?.getString("groupId") ?: Routes.AddEditGroup.NEW_GROUP
+                AddEditGroupScreen(
+                    groupId = groupId,
                     onBackClick = { navController.popBackStack() }
                 )
             }

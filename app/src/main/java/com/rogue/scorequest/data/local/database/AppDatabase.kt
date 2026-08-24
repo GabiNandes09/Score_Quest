@@ -9,6 +9,7 @@ import com.rogue.scorequest.data.local.dao.FavoriteGameDao
 import com.rogue.scorequest.data.local.dao.GameScoreSchemaDao
 import com.rogue.scorequest.data.local.dao.GameSessionDao
 import com.rogue.scorequest.data.local.dao.PlayerDao
+import com.rogue.scorequest.data.local.dao.PlayerGroupDao
 import com.rogue.scorequest.data.local.dao.ScoreEntryDao
 import com.rogue.scorequest.data.local.dao.UserLibraryEntryDao
 import com.rogue.scorequest.data.local.dao.UserProfileDao
@@ -19,6 +20,8 @@ import com.rogue.scorequest.data.local.entity.FavoriteGameEntity
 import com.rogue.scorequest.data.local.entity.GameScoreSchemaEntity
 import com.rogue.scorequest.data.local.entity.GameSessionEntity
 import com.rogue.scorequest.data.local.entity.PlayerEntity
+import com.rogue.scorequest.data.local.entity.PlayerGroupEntity
+import com.rogue.scorequest.data.local.entity.PlayerGroupMemberEntity
 import com.rogue.scorequest.data.local.entity.ScoreEntryEntity
 import com.rogue.scorequest.data.local.entity.UserLibraryEntryEntity
 import com.rogue.scorequest.data.local.entity.UserProfileEntity
@@ -33,9 +36,11 @@ import com.rogue.scorequest.data.local.entity.UserProfileEntity
         UserProfileEntity::class,
         FavoriteGameEntity::class,
         GameScoreSchemaEntity::class,
-        ActiveTimerEntity::class
+        ActiveTimerEntity::class,
+        PlayerGroupEntity::class,
+        PlayerGroupMemberEntity::class
     ],
-    version = 2
+    version = 3
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -48,4 +53,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun favoriteGameDao(): FavoriteGameDao
     abstract fun gameScoreSchemaDao(): GameScoreSchemaDao
     abstract fun activeTimerDao(): ActiveTimerDao
+    abstract fun playerGroupDao(): PlayerGroupDao
 }

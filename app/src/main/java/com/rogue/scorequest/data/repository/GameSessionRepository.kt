@@ -14,6 +14,7 @@ import com.rogue.scorequest.domain.model.DayActivity
 import com.rogue.scorequest.domain.model.GamePlayCount
 import com.rogue.scorequest.domain.model.GameSession
 import com.rogue.scorequest.domain.model.GameStats
+import com.rogue.scorequest.domain.model.GroupStats
 import com.rogue.scorequest.domain.model.LibraryStatus
 import com.rogue.scorequest.domain.model.MonthSessionCount
 import com.rogue.scorequest.domain.model.PlayerStats
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.map
 import kotlin.math.roundToInt
 
 private const val PLAYER_TOP_GAMES_LIMIT = 5
+private const val GROUP_TOP_GAMES_LIMIT = 5
 
 class GameSessionRepository(
     private val gameSessionDao: GameSessionDao,
@@ -115,6 +117,22 @@ class GameSessionRepository(
                 bestWinStreak = bestStreak,
                 topGames = topGames,
                 favoriteGame = favoriteGame
+            )
+        }
+
+    fun getGroupStats(groupId: String): Flow<GroupStats> =
+        combine(
+            gameSessionDao.getGroupSessionCount(groupId),
+            gameSessionDao.getGroupTotalMinutes(groupId),
+            gameSessionDao.getGroupTopGames(groupId, GROUP_TOP_GAMES_LIMIT),
+            scoreEntryDao.getGroupMemberWins(groupId)
+        ) { gamesPlayed, totalMinutes, topGames, memberWins ->
+            GroupStats(
+                gamesPlayed = gamesPlayed,
+                totalMinutes = totalMinutes ?: 0,
+                topGames = topGames,
+                favoriteGame = topGames.firstOrNull(),
+                memberWins = memberWins
             )
         }
 

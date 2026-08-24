@@ -9,6 +9,7 @@ data class GameSession(
     val durationMinutes: Int,
     val variantOrExpansion: String? = null,
     val photoUri: String? = null,
+    val groupId: String? = null,
     val participantIds: List<String>,
     override val createdAt: LocalDateTime,
     override val updatedAt: LocalDateTime,

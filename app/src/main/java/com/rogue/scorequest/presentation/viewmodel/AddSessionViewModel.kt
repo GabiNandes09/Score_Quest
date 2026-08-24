@@ -6,6 +6,7 @@ import com.rogue.scorequest.domain.model.ComparisonRule
 import com.rogue.scorequest.domain.model.GameScoreSchema
 import com.rogue.scorequest.domain.model.GameWithLibraryInfo
 import com.rogue.scorequest.domain.model.Player
+import com.rogue.scorequest.domain.model.PlayerGroup
 import com.rogue.scorequest.domain.model.RANKING_POINTS_FIELD_KEY
 import com.rogue.scorequest.domain.model.RANKING_POSITION_FIELD_KEY
 import com.rogue.scorequest.domain.model.ScoreInput
@@ -13,15 +14,21 @@ import com.rogue.scorequest.domain.model.ScoreSchemaType
 import com.rogue.scorequest.domain.model.WinnerMode
 import com.rogue.scorequest.domain.usecase.CalculateScoreFormulaUseCase
 import com.rogue.scorequest.domain.usecase.ClearActiveTimerForGameUseCase
+import com.rogue.scorequest.domain.usecase.CreatePlayerGroupUseCase
 import com.rogue.scorequest.domain.usecase.CreatePlayerUseCase
+import com.rogue.scorequest.domain.usecase.FindGroupWithExactMembersUseCase
 import com.rogue.scorequest.domain.usecase.GetGameScoreSchemaUseCase
 import com.rogue.scorequest.domain.usecase.GetGamesUseCase
+import com.rogue.scorequest.domain.usecase.GetPlayerGroupUseCase
+import com.rogue.scorequest.domain.usecase.GetPlayerGroupsUseCase
 import com.rogue.scorequest.domain.usecase.GetPlayersUseCase
 import com.rogue.scorequest.domain.usecase.GetSessionDetailUseCase
 import com.rogue.scorequest.domain.usecase.SaveGameSessionUseCase
 import com.rogue.scorequest.domain.usecase.UpdateGameSessionUseCase
+import com.rogue.scorequest.domain.usecase.UpdatePlayerGroupUseCase
 import com.rogue.scorequest.presentation.navigation.Routes
 import com.rogue.scorequest.presentation.viewmodel.states.AddSessionState
+import com.rogue.scorequest.presentation.viewmodel.states.GroupDriftPrompt
 import com.rogue.scorequest.presentation.viewmodel.states.ScoreEntryInput
 import com.rogue.scorequest.utils.ImageStorage
 import java.time.LocalDate
@@ -32,6 +39,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -51,7 +59,12 @@ class AddSessionViewModel(
     private val getSessionDetailUseCase: GetSessionDetailUseCase,
     getGameScoreSchemaUseCase: GetGameScoreSchemaUseCase,
     private val calculateScoreFormulaUseCase: CalculateScoreFormulaUseCase,
-    private val clearActiveTimerForGameUseCase: ClearActiveTimerForGameUseCase
+    private val clearActiveTimerForGameUseCase: ClearActiveTimerForGameUseCase,
+    getPlayerGroupsUseCase: GetPlayerGroupsUseCase,
+    private val getPlayerGroupUseCase: GetPlayerGroupUseCase,
+    private val findGroupWithExactMembersUseCase: FindGroupWithExactMembersUseCase,
+    private val createPlayerGroupUseCase: CreatePlayerGroupUseCase,
+    private val updatePlayerGroupUseCase: UpdatePlayerGroupUseCase
 ) : ViewModel() {
 
     val isEditMode: Boolean = sessionId != Routes.AddSessionWizardGraph.NEW_SESSION
@@ -79,6 +92,9 @@ class AddSessionViewModel(
     val players: StateFlow<List<Player>> = getPlayersUseCase()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val groups: StateFlow<List<PlayerGroup>> = getPlayerGroupsUseCase()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val schema: StateFlow<GameScoreSchema?> = _state
         .map { it.selectedGameId }
         .distinctUntilChanged()
@@ -87,6 +103,7 @@ class AddSessionViewModel(
 
     private var originalCreatedAt: LocalDateTime = LocalDateTime.now()
     private var originalPhotoPath: String? = null
+    private var pendingScoreInputs: List<ScoreInput>? = null
 
     init {
         if (isEditMode) {
@@ -103,6 +120,7 @@ class AddSessionViewModel(
                             durationMinutes = detail.session.durationMinutes.toString(),
                             variantOrExpansion = detail.session.variantOrExpansion.orEmpty(),
                             photoPath = detail.session.photoUri,
+                            selectedGroupId = detail.session.groupId,
                             selectedPlayerIds = detail.session.participantIds,
                             scores = detail.scores.associate { score ->
                                 score.playerId to ScoreEntryInput(
@@ -194,6 +212,24 @@ class AddSessionViewModel(
             scores = updatedScores,
             rankingOrder = updatedRankingOrder,
             rankingPoints = updatedRankingPoints
+        )
+    }
+
+    fun onGroupSelected(groupId: String) {
+        val state = _state.value
+        if (state.selectedGroupId == groupId) {
+            // Chip já ativo: só desmarca o rastreamento, sem mexer na seleção de jogadores.
+            _state.value = state.copy(selectedGroupId = null)
+            return
+        }
+        val group = groups.value.find { it.id == groupId } ?: return
+        val updatedIds = group.memberIds
+        _state.value = state.copy(
+            selectedGroupId = groupId,
+            selectedPlayerIds = updatedIds,
+            scores = updatedIds.associateWith { ScoreEntryInput() },
+            rankingOrder = emptyList(),
+            rankingPoints = emptyMap()
         )
     }
 
@@ -317,7 +353,6 @@ class AddSessionViewModel(
         val gameId = current.selectedGameId ?: return
         if (current.isSaving) return
 
-        val duration = current.durationMinutes.toIntOrNull() ?: 0
         val currentSchema = schema.value
 
         val scoreInputs = when {
@@ -361,38 +396,129 @@ class AddSessionViewModel(
 
         viewModelScope.launch {
             _state.value = current.copy(isSaving = true)
-            if (isEditMode) {
-                updateGameSessionUseCase(
-                    sessionId = sessionId,
-                    gameId = gameId,
-                    date = current.date.atStartOfDay(),
-                    durationMinutes = duration,
-                    variantOrExpansion = current.variantOrExpansion.trim().ifBlank { null },
-                    photoUri = current.photoPath,
-                    createdAt = originalCreatedAt,
-                    scores = scoreInputs
-                )
-                if (originalPhotoPath != null && originalPhotoPath != current.photoPath) {
-                    ImageStorage.deleteImage(originalPhotoPath)
+
+            val selectedIds = current.selectedPlayerIds.toSet()
+            val matchingGroup = findGroupWithExactMembersUseCase(selectedIds)
+
+            when {
+                matchingGroup != null -> {
+                    // Bate com um grupo existente — o originalmente selecionado ou não —
+                    // adota automaticamente, sem diálogo.
+                    persistSession(scoreInputs, gameId, current, matchingGroup.id)
                 }
-            } else {
-                saveGameSessionUseCase(
-                    gameId = gameId,
-                    date = current.date.atStartOfDay(),
-                    durationMinutes = duration,
-                    variantOrExpansion = current.variantOrExpansion.trim().ifBlank { null },
-                    photoUri = current.photoPath,
-                    scores = scoreInputs
-                )
-                // Partida veio de um cronômetro finalizado (ver Routes.NO_DURATION):
-                // só agora, com os dados de fato salvos, o cronômetro é encerrado de
-                // verdade. Até aqui ele ficou só pausado (ver FinishTimerUseCase), pra
-                // não reiniciar do zero se o usuário saísse do wizard sem salvar.
-                if (hasPrefillDuration) {
-                    clearActiveTimerForGameUseCase(gameId)
+                current.selectedGroupId != null -> {
+                    val originalGroup = getPlayerGroupUseCase(current.selectedGroupId).first()
+                    if (originalGroup == null) {
+                        persistSession(scoreInputs, gameId, current, null)
+                    } else {
+                        pendingScoreInputs = scoreInputs
+                        _state.value = _state.value.copy(
+                            isSaving = false,
+                            groupDriftPrompt = GroupDriftPrompt(originalGroup.id, originalGroup.name)
+                        )
+                    }
+                }
+                selectedIds.size >= 2 -> {
+                    pendingScoreInputs = scoreInputs
+                    _state.value = _state.value.copy(isSaving = false, offerCreateGroup = true)
+                }
+                else -> {
+                    persistSession(scoreInputs, gameId, current, null)
                 }
             }
-            _state.value = _state.value.copy(isSaving = false, saved = true)
         }
+    }
+
+    private suspend fun persistSession(
+        scoreInputs: List<ScoreInput>,
+        gameId: String,
+        current: AddSessionState,
+        groupId: String?
+    ) {
+        val duration = current.durationMinutes.toIntOrNull() ?: 0
+        if (isEditMode) {
+            updateGameSessionUseCase(
+                sessionId = sessionId,
+                gameId = gameId,
+                date = current.date.atStartOfDay(),
+                durationMinutes = duration,
+                variantOrExpansion = current.variantOrExpansion.trim().ifBlank { null },
+                photoUri = current.photoPath,
+                groupId = groupId,
+                createdAt = originalCreatedAt,
+                scores = scoreInputs
+            )
+            if (originalPhotoPath != null && originalPhotoPath != current.photoPath) {
+                ImageStorage.deleteImage(originalPhotoPath)
+            }
+        } else {
+            saveGameSessionUseCase(
+                gameId = gameId,
+                date = current.date.atStartOfDay(),
+                durationMinutes = duration,
+                variantOrExpansion = current.variantOrExpansion.trim().ifBlank { null },
+                photoUri = current.photoPath,
+                groupId = groupId,
+                scores = scoreInputs
+            )
+            // Partida veio de um cronômetro finalizado (ver Routes.NO_DURATION):
+            // só agora, com os dados de fato salvos, o cronômetro é encerrado de
+            // verdade. Até aqui ele ficou só pausado (ver FinishTimerUseCase), pra
+            // não reiniciar do zero se o usuário saísse do wizard sem salvar.
+            if (hasPrefillDuration) {
+                clearActiveTimerForGameUseCase(gameId)
+            }
+        }
+        pendingScoreInputs = null
+        _state.value = _state.value.copy(
+            isSaving = false,
+            saved = true,
+            groupDriftPrompt = null,
+            offerCreateGroup = false
+        )
+    }
+
+    private fun finishPendingGroupSave(groupId: String?) {
+        val inputs = pendingScoreInputs ?: return
+        val current = _state.value
+        val gameId = current.selectedGameId ?: return
+        viewModelScope.launch { persistSession(inputs, gameId, current, groupId) }
+    }
+
+    fun onKeepGroupAsIs() {
+        val groupId = _state.value.groupDriftPrompt?.groupId
+        finishPendingGroupSave(groupId)
+    }
+
+    fun onUpdateGroup() {
+        val prompt = _state.value.groupDriftPrompt ?: return
+        val memberIds = _state.value.selectedPlayerIds
+        viewModelScope.launch {
+            val group = getPlayerGroupUseCase(prompt.groupId).first() ?: return@launch
+            updatePlayerGroupUseCase(group, group.name, group.photoPath, memberIds)
+            finishPendingGroupSave(prompt.groupId)
+        }
+    }
+
+    fun onCreateNewGroupFromDrift(name: String) {
+        if (name.isBlank()) return
+        val memberIds = _state.value.selectedPlayerIds
+        viewModelScope.launch {
+            val newGroup = createPlayerGroupUseCase(name.trim(), null, memberIds)
+            finishPendingGroupSave(newGroup.id)
+        }
+    }
+
+    fun onCreateGroupFromSelection(name: String) {
+        if (name.isBlank()) return
+        val memberIds = _state.value.selectedPlayerIds
+        viewModelScope.launch {
+            val newGroup = createPlayerGroupUseCase(name.trim(), null, memberIds)
+            finishPendingGroupSave(newGroup.id)
+        }
+    }
+
+    fun onSkipGroupCreation() {
+        finishPendingGroupSave(null)
     }
 }

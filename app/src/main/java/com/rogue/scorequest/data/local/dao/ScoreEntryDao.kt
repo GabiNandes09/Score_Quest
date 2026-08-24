@@ -115,4 +115,17 @@ interface ScoreEntryDao {
         """
     )
     fun getTopPlayersByWins(limit: Int): Flow<List<PlayerWinCount>>
+
+    @Query(
+        """
+        SELECT se.player_id AS playerId, p.nickname AS playerName, COUNT(*) AS wins
+        FROM score_entry se
+        INNER JOIN game_session gs ON gs.id = se.session_id
+        INNER JOIN player p ON p.id = se.player_id
+        WHERE gs.group_id = :groupId AND se.is_winner = 1 AND se.deleted_at IS NULL AND gs.deleted_at IS NULL AND p.deleted_at IS NULL
+        GROUP BY se.player_id
+        ORDER BY wins DESC
+        """
+    )
+    fun getGroupMemberWins(groupId: String): Flow<List<PlayerWinCount>>
 }

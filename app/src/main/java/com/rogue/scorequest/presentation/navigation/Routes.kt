@@ -39,6 +39,15 @@ sealed class Routes(
         fun createRoute(playerId: String = NEW_PLAYER) = "add_edit_player/$playerId"
     }
 
+    data object GroupDetail : Routes("group_detail/{groupId}") {
+        fun createRoute(groupId: String) = "group_detail/$groupId"
+    }
+
+    data object AddEditGroup : Routes("add_edit_group/{groupId}") {
+        const val NEW_GROUP = "new"
+        fun createRoute(groupId: String = NEW_GROUP) = "add_edit_group/$groupId"
+    }
+
     data object AddSessionWizardGraph : Routes("add_session_wizard/{sessionId}/{gameId}/{prefillDurationMinutes}") {
         const val NEW_SESSION = "new"
         const val NO_GAME = "none"

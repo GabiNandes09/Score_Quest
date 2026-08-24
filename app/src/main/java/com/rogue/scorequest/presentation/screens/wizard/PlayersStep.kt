@@ -4,16 +4,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -29,10 +30,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.rogue.scorequest.domain.model.Player
+import com.rogue.scorequest.domain.model.PlayerGroup
 import com.rogue.scorequest.domain.model.ScoreSchemaType
+import com.rogue.scorequest.presentation.components.PlayerAvatarImage
+import com.rogue.scorequest.presentation.components.PlayerRow
 import com.rogue.scorequest.presentation.viewmodel.AddSessionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,6 +48,7 @@ fun PlayersStep(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val players by viewModel.players.collectAsStateWithLifecycle()
+    val groups by viewModel.groups.collectAsStateWithLifecycle()
     val schema by viewModel.schema.collectAsStateWithLifecycle()
     var newNickname by remember { mutableStateOf("") }
 
@@ -56,6 +61,26 @@ fun PlayersStep(
         }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
+            if (groups.isNotEmpty()) {
+                Text(
+                    text = "Começar de um grupo",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                )
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(groups) { group ->
+                        GroupChip(
+                            group = group,
+                            selected = group.id == state.selectedGroupId,
+                            onClick = { viewModel.onGroupSelected(group.id) }
+                        )
+                    }
+                }
+            }
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -131,15 +156,21 @@ fun PlayersStep(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PlayerRow(player: Player, selected: Boolean, onToggle: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Checkbox(checked = selected, onCheckedChange = { onToggle() })
-        Text(text = player.nickname, style = MaterialTheme.typography.bodyLarge)
-    }
+private fun GroupChip(group: PlayerGroup, selected: Boolean, onClick: () -> Unit) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        leadingIcon = {
+            PlayerAvatarImage(
+                avatarPath = group.photoPath,
+                nickname = group.name,
+                modifier = Modifier
+                    .size(20.dp)
+                    .clip(CircleShape)
+            )
+        },
+        label = { Text(group.name) }
+    )
 }

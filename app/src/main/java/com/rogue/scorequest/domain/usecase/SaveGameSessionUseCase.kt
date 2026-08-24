@@ -16,6 +16,7 @@ class SaveGameSessionUseCase(
         durationMinutes: Int,
         variantOrExpansion: String?,
         photoUri: String?,
+        groupId: String?,
         scores: List<ScoreInput>
     ): String {
         val sessionId = UUID.randomUUID().toString()
@@ -27,6 +28,7 @@ class SaveGameSessionUseCase(
             durationMinutes = durationMinutes,
             variantOrExpansion = variantOrExpansion,
             photoUri = photoUri,
+            groupId = groupId,
             participantIds = scores.map { it.playerId },
             createdAt = now,
             updatedAt = now

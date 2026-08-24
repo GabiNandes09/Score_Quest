@@ -4,16 +4,20 @@ import com.rogue.scorequest.data.repository.ActiveTimerRepository
 import com.rogue.scorequest.data.repository.BoardGameRepository
 import com.rogue.scorequest.data.repository.GameScoreSchemaRepository
 import com.rogue.scorequest.data.repository.GameSessionRepository
+import com.rogue.scorequest.data.repository.PlayerGroupRepository
 import com.rogue.scorequest.data.repository.PlayerRepository
 import com.rogue.scorequest.data.repository.ProfileRepository
 import com.rogue.scorequest.domain.usecase.AddUserGameUseCase
 import com.rogue.scorequest.domain.usecase.CalculateScoreFormulaUseCase
 import com.rogue.scorequest.domain.usecase.CancelTimerUseCase
 import com.rogue.scorequest.domain.usecase.ClearActiveTimerForGameUseCase
+import com.rogue.scorequest.domain.usecase.CreatePlayerGroupUseCase
 import com.rogue.scorequest.domain.usecase.CreatePlayerUseCase
 import com.rogue.scorequest.domain.usecase.DeleteGameSessionUseCase
+import com.rogue.scorequest.domain.usecase.DeletePlayerGroupUseCase
 import com.rogue.scorequest.domain.usecase.DeletePlayerUseCase
 import com.rogue.scorequest.domain.usecase.ExportGamesUseCase
+import com.rogue.scorequest.domain.usecase.FindGroupWithExactMembersUseCase
 import com.rogue.scorequest.domain.usecase.FinishTimerUseCase
 import com.rogue.scorequest.domain.usecase.GetActiveTimerUseCase
 import com.rogue.scorequest.domain.usecase.GetActivityHeatmapUseCase
@@ -24,8 +28,11 @@ import com.rogue.scorequest.domain.usecase.GetGameDetailUseCase
 import com.rogue.scorequest.domain.usecase.GetGameScoreSchemaUseCase
 import com.rogue.scorequest.domain.usecase.GetGameStatsUseCase
 import com.rogue.scorequest.domain.usecase.GetGamesUseCase
+import com.rogue.scorequest.domain.usecase.GetGroupStatsUseCase
 import com.rogue.scorequest.domain.usecase.GetHomeStatsUseCase
 import com.rogue.scorequest.domain.usecase.GetLastPlayedDatesUseCase
+import com.rogue.scorequest.domain.usecase.GetPlayerGroupUseCase
+import com.rogue.scorequest.domain.usecase.GetPlayerGroupsUseCase
 import com.rogue.scorequest.domain.usecase.GetPlayerStatsUseCase
 import com.rogue.scorequest.domain.usecase.GetPlayerUseCase
 import com.rogue.scorequest.domain.usecase.GetPlayersUseCase
@@ -52,6 +59,7 @@ import com.rogue.scorequest.domain.usecase.SetThemePreferenceUseCase
 import com.rogue.scorequest.domain.usecase.StartTimerUseCase
 import com.rogue.scorequest.domain.usecase.UpdateGameSessionUseCase
 import com.rogue.scorequest.domain.usecase.UpdateLibraryStatusUseCase
+import com.rogue.scorequest.domain.usecase.UpdatePlayerGroupUseCase
 import com.rogue.scorequest.domain.usecase.UpdatePlayerUseCase
 import com.rogue.scorequest.domain.usecase.UpdateProfileUseCase
 import com.rogue.scorequest.domain.usecase.UpdateUserGameUseCase
@@ -66,6 +74,7 @@ val appModule = module {
     single { ProfileRepository(get(), get()) }
     single { GameScoreSchemaRepository(get()) }
     single { ActiveTimerRepository(get()) }
+    single { PlayerGroupRepository(get()) }
 
     // Use cases - jogos/estante
     factory { GetGamesUseCase(get()) }
@@ -92,6 +101,15 @@ val appModule = module {
     factory { UpdatePlayerUseCase(get()) }
     factory { DeletePlayerUseCase(get()) }
     factory { GetPlayerStatsUseCase(get()) }
+
+    // Use cases - grupos de jogadores
+    factory { GetPlayerGroupsUseCase(get()) }
+    factory { GetPlayerGroupUseCase(get()) }
+    factory { CreatePlayerGroupUseCase(get()) }
+    factory { UpdatePlayerGroupUseCase(get()) }
+    factory { DeletePlayerGroupUseCase(get()) }
+    factory { FindGroupWithExactMembersUseCase(get()) }
+    factory { GetGroupStatsUseCase(get()) }
 
     // Use cases - partidas
     factory { SaveGameSessionUseCase(get()) }

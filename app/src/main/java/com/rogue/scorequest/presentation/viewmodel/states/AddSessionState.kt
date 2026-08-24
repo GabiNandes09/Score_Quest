@@ -7,6 +7,8 @@ data class ScoreEntryInput(
     val isWinner: Boolean = false
 )
 
+data class GroupDriftPrompt(val groupId: String, val groupName: String)
+
 data class AddSessionState(
     val isEditMode: Boolean = false,
     val isLoading: Boolean = false,
@@ -23,6 +25,11 @@ data class AddSessionState(
 
     val selectedPlayerIds: List<String> = emptyList(),
     val scores: Map<String, ScoreEntryInput> = emptyMap(),
+
+    // Grupos (ver CLAUDE.md "Grupos de jogadores")
+    val selectedGroupId: String? = null,
+    val groupDriftPrompt: GroupDriftPrompt? = null,
+    val offerCreateGroup: Boolean = false,
 
     // Pontuação composta (schema COMPOSITE, ver seção 8 do doc de produto)
     val compositeFieldValues: Map<String, Map<String, String>> = emptyMap(), // playerId -> fieldKey -> valor

@@ -104,6 +104,13 @@ fun SessionDetailScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+                        current.groupName?.let { groupName ->
+                            Text(
+                                text = "Grupo: $groupName",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                         current.session.photoUri?.let { uri ->
                             AsyncImage(model = uri, contentDescription = null, modifier = Modifier.size(160.dp))
                         }
