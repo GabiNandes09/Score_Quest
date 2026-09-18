@@ -7,7 +7,9 @@
 App Android pessoal para histórico de jogatinas de jogos de tabuleiro: catálogo de jogos, estante pessoal (Tenho/Quero/Não tenho + empréstimo), registro de partidas com pontuação, jogadores locais, perfil com favoritos e feed de atividades, home com estatísticas (streak, top jogos, tempo de jogo).
 
 - Projeto scaffolded a partir do skill `android-compose-scaffold` (mesma stack/arquitetura do projeto de referência `ShopControl`), depois implementado como V1 completo numa sessão longa.
-- Documento de produto completo (modelo de dados, telas, roadmap V1/V2/V3): [ScoreQuest_Documento_de_Produto.md](ScoreQuest_Documento_de_Produto.md) — **fonte da verdade para requisitos**; este CLAUDE.md documenta o que foi **implementado e decidido durante a implementação**, não repete o doc de produto.
+- **Contexto de produto atualizado** (o que o app já faz hoje — telas, modelo de dados, navegação): [Score_Quest_Context.md](Score_Quest_Context.md). **Backlog/roadmap ainda não implementado**: [Score_Quest_Planejamento.md](Score_Quest_Planejamento.md) — sempre que algo daqui (CLAUDE.md) representar uma feature nova, o Context deve ser atualizado e o item correspondente removido do Planejamento.
+- Documento de produto original (visão/roadmap V1/V2/V3 tal como concebido inicialmente): [ScoreQuest_Documento_de_Produto.md](ScoreQuest_Documento_de_Produto.md) — mantido como histórico; partes dele já foram implementadas de forma diferente do que está escrito ali (ver Context.md para o estado real).
+- Este CLAUDE.md documenta **decisões técnicas de engenharia** (bugs já corrigidos, versões de bibliotecas, convenções de código, fluxo de build) — não repete o que já está no Context/Planejamento.
 - V1 é **100% local (Room)**, sem contas/nuvem. **Exceção: o Criador de Pontuação Personalizado (seção 8 do doc, nominalmente V2) foi implementado por pedido explícito do usuário, cherry-picked pra dentro do app V1**, já que não depende de conta/nuvem — só do modelo de permissão "fase atual" descrito em 8.1 (qualquer usuário edita, sem restrição). Ver seção própria abaixo.
 
 ## Stack técnica
