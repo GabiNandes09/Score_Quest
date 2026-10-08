@@ -28,6 +28,9 @@ interface PlayerDao {
     @Query("SELECT * FROM player WHERE id = :id AND deleted_at IS NULL")
     suspend fun findById(id: String): PlayerEntity?
 
+    @Query("SELECT * FROM player WHERE linked_user_id = :linkedUserId AND deleted_at IS NULL LIMIT 1")
+    suspend fun findByLinkedUserId(linkedUserId: String): PlayerEntity?
+
     @Query("SELECT EXISTS(SELECT 1 FROM score_entry WHERE player_id = :playerId AND deleted_at IS NULL)")
     suspend fun hasHistory(playerId: String): Boolean
 }

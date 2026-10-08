@@ -28,11 +28,31 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    // Solicitações de amizade (ver FriendRepository.kt): coleção neutra que os
+    // dois lados leem — quem envia cria, só o destinatário atualiza o status
+    // (aceitar/recusar), só quem enviou pode cancelar/excluir a própria.
+    match /friendRequests/{requestId} {
+      allow read: if request.auth != null &&
+        (request.auth.uid == resource.data.fromUid || request.auth.uid == resource.data.toUid);
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.fromUid;
+      allow update: if request.auth != null && request.auth.uid == resource.data.toUid;
+      allow delete: if request.auth != null && request.auth.uid == resource.data.fromUid;
+    }
+
     // Dado pessoal: cada usuário só lê/escreve os próprios dados, normalizados
     // por coleção em users/{uid}/... (libraryEntries, players, sessions, etc.
     // — ver CloudBackupRepository.kt).
     match /users/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      // Amizade é espelhada nos dois lados ao aceitar uma solicitação (ver
+      // FriendRepository.addFriendPair) — regra mais aberta que a genérica
+      // abaixo, union de permissão: quem aceita (friendUid) também pode
+      // escrever no documento do remetente (uid), e vice-versa ao desfazer.
+      match /friends/{friendUid} {
+        allow read, write: if request.auth != null &&
+          (request.auth.uid == uid || request.auth.uid == friendUid);
+      }
 
       match /{collection}/{docId} {
         allow read, write: if request.auth != null && request.auth.uid == uid;

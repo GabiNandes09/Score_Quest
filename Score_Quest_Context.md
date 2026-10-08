@@ -86,8 +86,10 @@ Header com avatar, nome e (se logado com Google) `@username` abaixo do nome em d
 ### 5.9 Configurações
 Seção de conta (**Entrar com Google** / nome+e-mail da conta + **Sair**, ver seção 9), toggle de tema claro/escuro, **Importar JSON** e **Exportar JSON** do acervo de jogos (ver seção 6).
 
-### 5.10 Jogadores e Grupos
-Aba "Jogadores" com 2 sub-abas: **Jogadores** (grid, criar/editar/excluir, detalhe com estatísticas individuais) e **Grupos** (conjuntos nomeados de 2+ jogadores, com estatísticas próprias filtradas pelas partidas daquele grupo). Ao registrar uma partida, o app reconcilia automaticamente a seleção de jogadores com grupos existentes (adota, sugere atualizar ou criar grupo novo).
+### 5.10 Jogadores, Grupos e Amigos
+Aba "Jogadores" com 3 sub-abas: **Jogadores** (grid, criar/editar/excluir, detalhe com estatísticas individuais), **Grupos** (conjuntos nomeados de 2+ jogadores, com estatísticas próprias filtradas pelas partidas daquele grupo) e **Amigos** (só com conta logada): buscar usuário por `@username` e enviar solicitação, aceitar/recusar solicitações recebidas, listar amigos. Ao registrar uma partida, o app reconcilia automaticamente a seleção de jogadores com grupos existentes (adota, sugere atualizar ou criar grupo novo).
+
+Amigos entram no fluxo de partida **como um Player local**: a aba Amigos tem um botão "Adicionar como jogador" por amigo (cria/reaproveita um `Player` vinculado àquela conta), que passa a aparecer normalmente entre os jogadores do wizard de registro de partida — nenhuma tela do wizard precisou mudar. Em "Editar jogador", um `Player` ainda não vinculado ganha o botão "Vincular a um amigo" — útil pra quem já tinha um jogador cadastrado com histórico de partidas e a pessoa correspondente criou conta depois (o histórico continua todo ligado ao mesmo jogador, só passa a apontar pra conta real).
 
 ### 5.11 Extras / Ferramentas
 Aba com 12 mini-ferramentas independentes de registro de partida: Moeda, Número aleatório, Letra aleatória, Sorteio por nome, Ordem de turno, Sorteio de equipes, Sorteio de papéis, Dados (d4-d20), Roleta customizável, Placar avulso, Cronômetro por turno, Dedo na tela (multi-toque). Nenhuma persiste dado — resetam ao sair da tela.
@@ -106,12 +108,14 @@ Login com Google **opcional** (via Configurações) + backup/sincronização dos
 - **Entrar**: Configurações → "Entrar com Google" → tela de login dedicada (Credential Manager). Ao logar com sucesso, os dados pessoais já presentes localmente no aparelho (jogadores, partidas, grupos, perfil, estante) são automaticamente associados àquele usuário — se o aparelho já tinha jogador cadastrado, eles sobem pra nuvem; se estava vazio (ex.: depois de um logout), o backup existente da nuvem é baixado.
 - **Catálogo de jogos é compartilhado entre todos os usuários** (jogos + pontuação personalizada), não pertence a uma conta — sincronizado nos dois sentidos a cada login. Sua **estante** (status Tenho/Quero/Jogado, empréstimo, avaliação) continua privada, só referenciando o jogo do catálogo compartilhado.
 - **Sair**: Configurações → "Sair" — desloga **e apaga todos os dados locais do aparelho** (catálogo, estante, jogadores, partidas, pontuações personalizadas — inclusive o catálogo, que é baixado de novo no próximo login de qualquer conta), pra não misturar com o próximo usuário/conta que usar o mesmo aparelho.
-- Escopo: um usuário só tem uma "cópia na nuvem" de cada vez (sem múltiplos dispositivos editando a mesma conta simultaneamente, sem resolução de conflito). Sem recursos sociais (amigos, feed, @username, compartilhar sessão/grupo entre contas) — modelo desenhado mas não implementado em `CLAUDE.md` ("Modelo de conexões/amigos"), continua no backlog de V2.
+- Escopo: um usuário só tem uma "cópia na nuvem" de cada vez (sem múltiplos dispositivos editando a mesma conta simultaneamente, sem resolução de conflito).
+- **Amigos (solicitação/aceite) já implementado** — ver seção 5.10 e `CLAUDE.md` ("Amigos"). Sem feed de atividades social, e registrar partida com um amigo ainda não compartilha a sessão com a conta dele (fica só no seu próprio backup) — ver limitações em `CLAUDE.md`.
 
 ## 8. O que ainda não existe
 
 - Onboarding de primeiro uso.
-- Recursos sociais de conta (amigos, @username, feed de atividades compartilhado).
+- Compartilhar a sessão/partida em si com a conta do amigo (hoje amigo = Player local vinculado, mas a partida registrada não aparece automaticamente pro outro lado).
+- Feed de atividades social, busca de amigo por QR Code.
 - Catálogo curado ainda não chegou na meta de 100-300 jogos (hoje são 20).
 
 Backlog completo em `Score_Quest_Planejamento.md`.

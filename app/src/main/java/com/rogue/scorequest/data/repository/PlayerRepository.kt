@@ -24,4 +24,7 @@ class PlayerRepository(
     suspend fun deletePlayer(id: String, deletedAt: Long) = playerDao.softDelete(id, deletedAt)
 
     suspend fun hasHistory(playerId: String): Boolean = playerDao.hasHistory(playerId)
+
+    suspend fun findByLinkedUserId(linkedUserId: String): Player? =
+        playerDao.findByLinkedUserId(linkedUserId)?.toDomain()
 }
