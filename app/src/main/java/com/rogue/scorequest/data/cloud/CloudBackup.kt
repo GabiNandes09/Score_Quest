@@ -9,23 +9,12 @@ import com.rogue.scorequest.domain.model.WinnerMode
 import kotlinx.serialization.Serializable
 
 /**
- * Espelho completo dos dados locais de um usuário, serializado como um único
- * documento no Firestore (ver CloudBackupRepository). Isolado dos domain
- * models (mesmo motivo do SeedGamesFile, ver data/seed/) — LocalDateTime vira
- * epoch millis (Long), igual às entidades Room.
+ * Espelho dos dados locais de um usuário no Firestore, normalizado por
+ * coleção (um documento por jogo/jogador/partida/etc. — ver
+ * CloudBackupRepository), isolado dos domain models (mesmo motivo do
+ * SeedGamesFile, ver data/seed/) — LocalDateTime vira epoch millis (Long),
+ * igual às entidades Room.
  */
-@Serializable
-data class CloudBackup(
-    val profile: CloudProfile? = null,
-    val games: List<CloudGame> = emptyList(),
-    val libraryEntries: List<CloudLibraryEntry> = emptyList(),
-    val players: List<CloudPlayer> = emptyList(),
-    val groups: List<CloudGroup> = emptyList(),
-    val sessions: List<CloudSession> = emptyList(),
-    val scoreSchemas: List<CloudScoreSchema> = emptyList(),
-    val favoriteGameIds: List<String> = emptyList()
-)
-
 @Serializable
 data class CloudProfile(
     val displayName: String,

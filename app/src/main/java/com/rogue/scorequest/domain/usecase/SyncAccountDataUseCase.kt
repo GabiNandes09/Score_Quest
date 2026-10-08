@@ -1,6 +1,5 @@
 package com.rogue.scorequest.domain.usecase
 
-import com.rogue.scorequest.data.cloud.CloudBackup
 import com.rogue.scorequest.data.cloud.toCloud
 import com.rogue.scorequest.data.cloud.toDomain
 import com.rogue.scorequest.data.cloud.toDomainSessionAndScores
@@ -14,8 +13,6 @@ import com.rogue.scorequest.data.repository.ProfileRepository
 import com.rogue.scorequest.domain.model.GameWithLibraryInfo
 import com.rogue.scorequest.domain.model.Player
 import kotlinx.coroutines.flow.first
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 /**
  * Roda logo após o login: se o aparelho já tem dado local (acumulado antes de
@@ -33,7 +30,6 @@ class SyncAccountDataUseCase(
     private val profileRepository: ProfileRepository,
     private val cloudBackupRepository: CloudBackupRepository
 ) {
-    private val json = Json { ignoreUnknownKeys = true }
 
     suspend operator fun invoke(uid: String) {
         val games = boardGameRepository.getGames().first()
@@ -46,33 +42,27 @@ class SyncAccountDataUseCase(
     }
 
     private suspend fun pushToCloud(uid: String, gamesWithLibrary: List<GameWithLibraryInfo>, players: List<Player>) {
-        val backup = CloudBackup(
-            profile = profileRepository.getProfile().first()?.toCloud(),
-            games = gamesWithLibrary.map { it.game.toCloud() },
-            libraryEntries = gamesWithLibrary.mapNotNull { it.libraryEntry?.toCloud() },
-            players = players.map { it.toCloud() },
-            groups = playerGroupRepository.getGroupsOnce().map { it.toCloud() },
-            sessions = gameSessionRepository.getAllSessionsOnce().map { it.toCloud() },
-            scoreSchemas = gameScoreSchemaRepository.getAllOnce().map { it.toCloud() },
-            favoriteGameIds = profileRepository.getFavoriteGames().first().map { it.id }
-        )
-        cloudBackupRepository.upload(uid, json.encodeToString(backup))
+        profileRepository.getProfile().first()?.let { cloudBackupRepository.uploadProfile(uid, it.toCloud()) }
+        cloudBackupRepository.uploadGames(uid, gamesWithLibrary.map { it.game.toCloud() })
+        cloudBackupRepository.uploadLibraryEntries(uid, gamesWithLibrary.mapNotNull { it.libraryEntry?.toCloud() })
+        cloudBackupRepository.uploadPlayers(uid, players.map { it.toCloud() })
+        cloudBackupRepository.uploadGroups(uid, playerGroupRepository.getGroupsOnce().map { it.toCloud() })
+        cloudBackupRepository.uploadSessions(uid, gameSessionRepository.getAllSessionsOnce().map { it.toCloud() })
+        cloudBackupRepository.uploadScoreSchemas(uid, gameScoreSchemaRepository.getAllOnce().map { it.toCloud() })
+        cloudBackupRepository.uploadFavoriteGameIds(uid, profileRepository.getFavoriteGames().first().map { it.id })
     }
 
     private suspend fun pullFromCloud(uid: String) {
-        val payload = cloudBackupRepository.download(uid) ?: return
-        val backup = runCatching { json.decodeFromString<CloudBackup>(payload) }.getOrNull() ?: return
-
-        backup.profile?.let { profileRepository.saveProfile(it.toDomain()) }
-        backup.games.forEach { boardGameRepository.insertGame(it.toDomain()) }
-        backup.libraryEntries.forEach { boardGameRepository.upsertLibraryEntry(it.toDomain()) }
-        backup.players.forEach { playerRepository.insertPlayer(it.toDomain()) }
-        backup.groups.forEach { playerGroupRepository.createGroup(it.toDomain()) }
-        backup.scoreSchemas.forEach { gameScoreSchemaRepository.save(it.toDomain()) }
-        backup.sessions.forEach { cloudSession ->
+        cloudBackupRepository.downloadProfile(uid)?.let { profileRepository.saveProfile(it.toDomain()) }
+        cloudBackupRepository.downloadGames(uid).forEach { boardGameRepository.insertGame(it.toDomain()) }
+        cloudBackupRepository.downloadLibraryEntries(uid).forEach { boardGameRepository.upsertLibraryEntry(it.toDomain()) }
+        cloudBackupRepository.downloadPlayers(uid).forEach { playerRepository.insertPlayer(it.toDomain()) }
+        cloudBackupRepository.downloadGroups(uid).forEach { playerGroupRepository.createGroup(it.toDomain()) }
+        cloudBackupRepository.downloadScoreSchemas(uid).forEach { gameScoreSchemaRepository.save(it.toDomain()) }
+        cloudBackupRepository.downloadSessions(uid).forEach { cloudSession ->
             val (session, scores) = cloudSession.toDomainSessionAndScores()
             gameSessionRepository.saveSession(session, scores)
         }
-        backup.favoriteGameIds.forEach { profileRepository.addFavorite(it) }
+        cloudBackupRepository.downloadFavoriteGameIds(uid).forEach { profileRepository.addFavorite(it) }
     }
 }
