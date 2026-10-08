@@ -66,7 +66,9 @@ class AddEditPlayerViewModel(
         viewModelScope.launch {
             getAuthState().collect { user ->
                 _state.update { it.copy(isLoggedIn = user != null) }
-                myFriends = if (user != null) getFriends(user.uid) else emptyList()
+                // Sem conexão (sessão Firebase fica logada localmente mesmo offline), não
+                // trava a tela de editar jogador — só segue sem a lista de amigos pra vincular.
+                myFriends = if (user != null) runCatching { getFriends(user.uid) }.getOrDefault(emptyList()) else emptyList()
                 refreshLinkedUsername()
             }
         }

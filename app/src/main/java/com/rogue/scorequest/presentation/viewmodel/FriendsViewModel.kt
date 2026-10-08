@@ -58,9 +58,17 @@ class FriendsViewModel(
                     return@collect
                 }
                 _state.update { it.copy(isLoggedIn = true, isLoading = true) }
-                val requests = getIncomingFriendRequests(user.uid)
-                val friendsList = getFriends(user.uid)
-                _state.update { it.copy(isLoading = false, incomingRequests = requests, friends = friendsList) }
+                // Sessão Firebase fica logada localmente mesmo offline — sem conexão,
+                // mostra mensagem em vez de deixar a exceção do Firestore subir sem tratamento.
+                runCatching { getIncomingFriendRequests(user.uid) to getFriends(user.uid) }
+                    .onSuccess { (requests, friendsList) ->
+                        _state.update { it.copy(isLoading = false, incomingRequests = requests, friends = friendsList) }
+                    }
+                    .onFailure {
+                        _state.update {
+                            it.copy(isLoading = false, sendRequestMessage = "Sem conexão — não foi possível carregar amigos agora.")
+                        }
+                    }
             }
         }
         viewModelScope.launch {
@@ -84,14 +92,19 @@ class FriendsViewModel(
         if (query.isBlank()) return
         viewModelScope.launch {
             _state.update { it.copy(isSearching = true, searchError = null, searchResult = null) }
-            val result = searchUserByUsername(query)
-            _state.update {
-                it.copy(
-                    isSearching = false,
-                    searchResult = result,
-                    searchError = if (result == null) "Usuário \"@$query\" não encontrado" else null
-                )
-            }
+            runCatching { searchUserByUsername(query) }
+                .onSuccess { result ->
+                    _state.update {
+                        it.copy(
+                            isSearching = false,
+                            searchResult = result,
+                            searchError = if (result == null) "Usuário \"@$query\" não encontrado" else null
+                        )
+                    }
+                }
+                .onFailure {
+                    _state.update { it.copy(isSearching = false, searchError = "Sem conexão — não foi possível buscar agora.") }
+                }
         }
     }
 
@@ -99,14 +112,20 @@ class FriendsViewModel(
         val target = _state.value.searchResult ?: return
         val me = authUser.value ?: return
         viewModelScope.launch {
-            val myUsername = getMyUsername(me.uid) ?: return@launch
-            val result = sendFriendRequest(me, myUsername, target)
-            _state.update {
-                it.copy(
-                    sendRequestMessage = result.toMessage(target.username),
-                    searchResult = if (result == FriendRequestResult.SENT) null else it.searchResult,
-                    searchQuery = if (result == FriendRequestResult.SENT) "" else it.searchQuery
-                )
+            runCatching {
+                val myUsername = getMyUsername(me.uid) ?: return@runCatching null
+                sendFriendRequest(me, myUsername, target)
+            }.onSuccess { result ->
+                if (result == null) return@launch
+                _state.update {
+                    it.copy(
+                        sendRequestMessage = result.toMessage(target.username),
+                        searchResult = if (result == FriendRequestResult.SENT) null else it.searchResult,
+                        searchQuery = if (result == FriendRequestResult.SENT) "" else it.searchQuery
+                    )
+                }
+            }.onFailure {
+                _state.update { it.copy(sendRequestMessage = "Sem conexão — não foi possível enviar a solicitação.") }
             }
         }
     }
@@ -117,23 +136,26 @@ class FriendsViewModel(
 
     fun onAcceptClick(request: CloudFriendRequest) {
         viewModelScope.launch {
-            respondToFriendRequest(request, accept = true)
-            refresh()
+            runCatching { respondToFriendRequest(request, accept = true) }
+                .onSuccess { refresh() }
+                .onFailure { _state.update { it.copy(sendRequestMessage = "Sem conexão — não foi possível aceitar agora.") } }
         }
     }
 
     fun onDeclineClick(request: CloudFriendRequest) {
         viewModelScope.launch {
-            respondToFriendRequest(request, accept = false)
-            refresh()
+            runCatching { respondToFriendRequest(request, accept = false) }
+                .onSuccess { refresh() }
+                .onFailure { _state.update { it.copy(sendRequestMessage = "Sem conexão — não foi possível recusar agora.") } }
         }
     }
 
     fun onRemoveFriendClick(friend: CloudFriend) {
         val me = authUser.value ?: return
         viewModelScope.launch {
-            removeFriend(me.uid, friend.uid)
-            refresh()
+            runCatching { removeFriend(me.uid, friend.uid) }
+                .onSuccess { refresh() }
+                .onFailure { _state.update { it.copy(sendRequestMessage = "Sem conexão — não foi possível remover agora.") } }
         }
     }
 

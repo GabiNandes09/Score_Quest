@@ -50,7 +50,9 @@ class ProfileViewModel(
             authUser.collect { user ->
                 if (user?.uid != lastUid) {
                     lastUid = user?.uid
-                    username.value = user?.let { getPublicUsername(it.uid) }
+                    // Firestore pode não ter cache local pro @username (1ª vez, offline) —
+                    // sem conexão, só não mostra o username, não derruba a tela de Perfil.
+                    username.value = user?.let { runCatching { getPublicUsername(it.uid) }.getOrNull() }
                 }
             }
         }
