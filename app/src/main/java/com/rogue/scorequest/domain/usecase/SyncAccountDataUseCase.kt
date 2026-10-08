@@ -1,6 +1,6 @@
 package com.rogue.scorequest.domain.usecase
 
-import com.rogue.scorequest.data.cloud.CloudBackup
+import com.rogue.scorequest.data.cloud.CloudGame
 import com.rogue.scorequest.data.cloud.toCloud
 import com.rogue.scorequest.data.cloud.toDomain
 import com.rogue.scorequest.data.cloud.toDomainSessionAndScores
@@ -14,15 +14,20 @@ import com.rogue.scorequest.data.repository.ProfileRepository
 import com.rogue.scorequest.domain.model.GameWithLibraryInfo
 import com.rogue.scorequest.domain.model.Player
 import kotlinx.coroutines.flow.first
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 /**
- * Roda logo após o login: se o aparelho já tem dado local (acumulado antes de
- * logar), ele é a fonte da verdade e sobe pra nuvem daquele usuário (sobrescreve
- * o backup anterior, se houver). Se o local está vazio (ex.: reabriu a conta
- * depois de um logout, que limpa tudo via ClearLocalDataUseCase), baixa o
- * backup existente da nuvem pro Room. Sem merge bidirecional — ver CLAUDE.md.
+ * Roda logo após o login. Dois escopos tratados de formas diferentes (ver
+ * CLAUDE.md "Conta e sincronização com Firebase"):
+ * - **Catálogo compartilhado** (jogos + pontuação personalizada): sempre
+ *   sincronizado nos dois sentidos — sobe o que existe localmente (upsert por
+ *   id, idempotente) e baixa o catálogo inteiro, já que é global entre todos
+ *   os usuários, não pertence a esta conta.
+ * - **Dado pessoal** (jogadores, grupos, partidas, perfil, estante): só um
+ *   sentido por vez, sem merge bidirecional — se o Room local já tem
+ *   jogadores cadastrados, ele é a fonte da verdade e sobe pra nuvem
+ *   (sobrescreve o backup anterior desta conta); se está vazio (ex.: reabriu
+ *   a conta depois de um logout, que limpa tudo), baixa o backup existente da
+ *   nuvem pro Room.
  */
 class SyncAccountDataUseCase(
     private val boardGameRepository: BoardGameRepository,
@@ -33,46 +38,56 @@ class SyncAccountDataUseCase(
     private val profileRepository: ProfileRepository,
     private val cloudBackupRepository: CloudBackupRepository
 ) {
-    private val json = Json { ignoreUnknownKeys = true }
 
     suspend operator fun invoke(uid: String) {
-        val games = boardGameRepository.getGames().first()
+        val gamesWithLibrary = boardGameRepository.getGames().first()
+        syncSharedCatalog(gamesWithLibrary)
+
         val players = playerRepository.getPlayers().first()
-        if (games.isNotEmpty() || players.isNotEmpty()) {
-            pushToCloud(uid, games, players)
+        if (players.isNotEmpty()) {
+            pushPersonalData(uid, gamesWithLibrary, players)
         } else {
-            pullFromCloud(uid)
+            pullPersonalData(uid)
         }
     }
 
-    private suspend fun pushToCloud(uid: String, gamesWithLibrary: List<GameWithLibraryInfo>, players: List<Player>) {
-        val backup = CloudBackup(
-            profile = profileRepository.getProfile().first()?.toCloud(),
-            games = gamesWithLibrary.map { it.game.toCloud() },
-            libraryEntries = gamesWithLibrary.mapNotNull { it.libraryEntry?.toCloud() },
-            players = players.map { it.toCloud() },
-            groups = playerGroupRepository.getGroupsOnce().map { it.toCloud() },
-            sessions = gameSessionRepository.getAllSessionsOnce().map { it.toCloud() },
-            scoreSchemas = gameScoreSchemaRepository.getAllOnce().map { it.toCloud() },
-            favoriteGameIds = profileRepository.getFavoriteGames().first().map { it.id }
-        )
-        cloudBackupRepository.upload(uid, json.encodeToString(backup))
+    private suspend fun syncSharedCatalog(gamesWithLibrary: List<GameWithLibraryInfo>) {
+        cloudBackupRepository.uploadGames(gamesWithLibrary.map { it.game.toCloud() })
+        cloudBackupRepository.uploadScoreSchemas(gameScoreSchemaRepository.getAllOnce().map { it.toCloud() })
+
+        cloudBackupRepository.downloadGames().forEach { upsertCatalogGame(it) }
+        cloudBackupRepository.downloadScoreSchemas().forEach { gameScoreSchemaRepository.save(it.toDomain()) }
     }
 
-    private suspend fun pullFromCloud(uid: String) {
-        val payload = cloudBackupRepository.download(uid) ?: return
-        val backup = runCatching { json.decodeFromString<CloudBackup>(payload) }.getOrNull() ?: return
+    /** Upsert por id (mesmo idioma do ImportSeedGamesUseCase) — ao contrário do dado pessoal, o catálogo pode já ter o jogo localmente mesmo fora do caso "local vazio". */
+    private suspend fun upsertCatalogGame(cloudGame: CloudGame) {
+        val incoming = cloudGame.toDomain()
+        val existing = boardGameRepository.findGameOnce(incoming.id)
+        if (existing != null) {
+            boardGameRepository.updateGame(incoming.copy(createdAt = existing.createdAt))
+        } else {
+            boardGameRepository.insertGame(incoming)
+        }
+    }
 
-        backup.profile?.let { profileRepository.saveProfile(it.toDomain()) }
-        backup.games.forEach { boardGameRepository.insertGame(it.toDomain()) }
-        backup.libraryEntries.forEach { boardGameRepository.upsertLibraryEntry(it.toDomain()) }
-        backup.players.forEach { playerRepository.insertPlayer(it.toDomain()) }
-        backup.groups.forEach { playerGroupRepository.createGroup(it.toDomain()) }
-        backup.scoreSchemas.forEach { gameScoreSchemaRepository.save(it.toDomain()) }
-        backup.sessions.forEach { cloudSession ->
+    private suspend fun pushPersonalData(uid: String, gamesWithLibrary: List<GameWithLibraryInfo>, players: List<Player>) {
+        profileRepository.getProfile().first()?.let { cloudBackupRepository.uploadProfile(uid, it.toCloud()) }
+        cloudBackupRepository.uploadLibraryEntries(uid, gamesWithLibrary.mapNotNull { it.libraryEntry?.toCloud() })
+        cloudBackupRepository.uploadPlayers(uid, players.map { it.toCloud() })
+        cloudBackupRepository.uploadGroups(uid, playerGroupRepository.getGroupsOnce().map { it.toCloud() })
+        cloudBackupRepository.uploadSessions(uid, gameSessionRepository.getAllSessionsOnce().map { it.toCloud() })
+        cloudBackupRepository.uploadFavoriteGameIds(uid, profileRepository.getFavoriteGames().first().map { it.id })
+    }
+
+    private suspend fun pullPersonalData(uid: String) {
+        cloudBackupRepository.downloadProfile(uid)?.let { profileRepository.saveProfile(it.toDomain()) }
+        cloudBackupRepository.downloadLibraryEntries(uid).forEach { boardGameRepository.upsertLibraryEntry(it.toDomain()) }
+        cloudBackupRepository.downloadPlayers(uid).forEach { playerRepository.insertPlayer(it.toDomain()) }
+        cloudBackupRepository.downloadGroups(uid).forEach { playerGroupRepository.createGroup(it.toDomain()) }
+        cloudBackupRepository.downloadSessions(uid).forEach { cloudSession ->
             val (session, scores) = cloudSession.toDomainSessionAndScores()
             gameSessionRepository.saveSession(session, scores)
         }
-        backup.favoriteGameIds.forEach { profileRepository.addFavorite(it) }
+        cloudBackupRepository.downloadFavoriteGameIds(uid).forEach { profileRepository.addFavorite(it) }
     }
 }

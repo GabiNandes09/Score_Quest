@@ -4,6 +4,7 @@ import com.rogue.scorequest.data.repository.ActiveTimerRepository
 import com.rogue.scorequest.data.repository.AuthRepository
 import com.rogue.scorequest.data.repository.BoardGameRepository
 import com.rogue.scorequest.data.repository.CloudBackupRepository
+import com.rogue.scorequest.data.repository.FriendRepository
 import com.rogue.scorequest.data.repository.GameScoreSchemaRepository
 import com.rogue.scorequest.data.repository.GameSessionRepository
 import com.rogue.scorequest.data.repository.PlayerGroupRepository
@@ -19,6 +20,7 @@ import com.rogue.scorequest.domain.usecase.CreatePlayerUseCase
 import com.rogue.scorequest.domain.usecase.DeleteGameSessionUseCase
 import com.rogue.scorequest.domain.usecase.DeletePlayerGroupUseCase
 import com.rogue.scorequest.domain.usecase.DeletePlayerUseCase
+import com.rogue.scorequest.domain.usecase.EnsurePublicProfileUseCase
 import com.rogue.scorequest.domain.usecase.ExportGamesUseCase
 import com.rogue.scorequest.domain.usecase.FindGroupWithExactMembersUseCase
 import com.rogue.scorequest.domain.usecase.FinishTimerUseCase
@@ -39,8 +41,12 @@ import com.rogue.scorequest.domain.usecase.GetPlayerGroupUseCase
 import com.rogue.scorequest.domain.usecase.GetPlayerGroupsUseCase
 import com.rogue.scorequest.domain.usecase.GetPlayerStatsUseCase
 import com.rogue.scorequest.domain.usecase.GetPlayerUseCase
+import com.rogue.scorequest.domain.usecase.GetFriendsUseCase
+import com.rogue.scorequest.domain.usecase.GetIncomingFriendRequestsUseCase
+import com.rogue.scorequest.domain.usecase.GetOrCreatePlayerForFriendUseCase
 import com.rogue.scorequest.domain.usecase.GetPlayersUseCase
 import com.rogue.scorequest.domain.usecase.GetProfileUseCase
+import com.rogue.scorequest.domain.usecase.GetPublicUsernameUseCase
 import com.rogue.scorequest.domain.usecase.GetRecentSessionsUseCase
 import com.rogue.scorequest.domain.usecase.GetSessionCountUseCase
 import com.rogue.scorequest.domain.usecase.GetSessionDetailUseCase
@@ -51,11 +57,16 @@ import com.rogue.scorequest.domain.usecase.GetStreakUseCase
 import com.rogue.scorequest.domain.usecase.GetHomeWidgetVisibilityUseCase
 import com.rogue.scorequest.domain.usecase.GetThemePreferenceUseCase
 import com.rogue.scorequest.domain.usecase.ImportSeedGamesUseCase
+import com.rogue.scorequest.domain.usecase.LinkPlayerToFriendUseCase
 import com.rogue.scorequest.domain.usecase.PauseTimerUseCase
 import com.rogue.scorequest.domain.usecase.RateGameUseCase
+import com.rogue.scorequest.domain.usecase.RemoveFriendUseCase
 import com.rogue.scorequest.domain.usecase.ResumeTimerUseCase
+import com.rogue.scorequest.domain.usecase.RespondToFriendRequestUseCase
 import com.rogue.scorequest.domain.usecase.SaveGameScoreSchemaUseCase
 import com.rogue.scorequest.domain.usecase.SaveGameSessionUseCase
+import com.rogue.scorequest.domain.usecase.SearchUserByUsernameUseCase
+import com.rogue.scorequest.domain.usecase.SendFriendRequestUseCase
 import com.rogue.scorequest.domain.usecase.SetFavoriteGameUseCase
 import com.rogue.scorequest.domain.usecase.SetLoanUseCase
 import com.rogue.scorequest.domain.usecase.SetHomeWidgetVisibleUseCase
@@ -84,6 +95,7 @@ val appModule = module {
     single { PlayerGroupRepository(get()) }
     single { AuthRepository(get()) }
     single { CloudBackupRepository(get()) }
+    single { FriendRepository(get()) }
 
     // Use cases - jogos/estante
     factory { GetGamesUseCase(get()) }
@@ -138,6 +150,7 @@ val appModule = module {
 
     // Use cases - perfil
     factory { GetProfileUseCase(get()) }
+    factory { GetPublicUsernameUseCase(get()) }
     factory { UpdateProfileUseCase(get()) }
     factory { GetFavoriteGamesUseCase(get()) }
     factory { SetFavoriteGameUseCase(get()) }
@@ -165,6 +178,17 @@ val appModule = module {
     factory {
         SyncAccountDataUseCase(get(), get(), get(), get(), get(), get(), get())
     }
-    factory { SignInWithGoogleUseCase(get(), get()) }
+    factory { EnsurePublicProfileUseCase(get()) }
+    factory { SignInWithGoogleUseCase(get(), get(), get()) }
     factory { SignOutUseCase(get(), get()) }
+
+    // Use cases - amigos
+    factory { SearchUserByUsernameUseCase(get()) }
+    factory { SendFriendRequestUseCase(get()) }
+    factory { GetIncomingFriendRequestsUseCase(get()) }
+    factory { RespondToFriendRequestUseCase(get()) }
+    factory { GetFriendsUseCase(get()) }
+    factory { RemoveFriendUseCase(get()) }
+    factory { GetOrCreatePlayerForFriendUseCase(get()) }
+    factory { LinkPlayerToFriendUseCase(get()) }
 }

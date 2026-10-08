@@ -5,10 +5,58 @@ rules_version = '2';
 // CLI configurado para deploy automático.
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Cada usuário só lê/escreve o próprio documento de backup (user_backups/{uid}),
-    // onde fica o espelho completo dos dados locais (ver CloudBackupRepository.kt).
-    match /user_backups/{uid} {
+    // Catálogo compartilhado (jogos + pontuação personalizada): qualquer
+    // usuário logado lê e escreve, sem dono — mesmo modelo de permissão
+    // "fase atual" já usado antes de ter conta (ver CLAUDE.md).
+    match /games/{gameId} {
+      allow read, write: if request.auth != null;
+    }
+    match /scoreSchemas/{gameId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Diretório público mínimo (nome/e-mail/foto da conta Google + @username,
+    // ver EnsurePublicProfileUseCase): qualquer usuário logado lê (precisa
+    // existir pra um dia dar pra buscar/reconhecer outra conta), só o próprio
+    // dono escreve o seu. O contador de @username é um recurso compartilhado
+    // sem dono — qualquer logado precisa poder incrementar.
+    match /publicProfiles/{uid} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+    match /usernameCounters/{slug} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Solicitações de amizade (ver FriendRepository.kt): coleção neutra que os
+    // dois lados leem — quem envia cria, só o destinatário atualiza o status
+    // (aceitar/recusar), só quem enviou pode cancelar/excluir a própria.
+    match /friendRequests/{requestId} {
+      allow read: if request.auth != null &&
+        (request.auth.uid == resource.data.fromUid || request.auth.uid == resource.data.toUid);
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.fromUid;
+      allow update: if request.auth != null && request.auth.uid == resource.data.toUid;
+      allow delete: if request.auth != null && request.auth.uid == resource.data.fromUid;
+    }
+
+    // Dado pessoal: cada usuário só lê/escreve os próprios dados, normalizados
+    // por coleção em users/{uid}/... (libraryEntries, players, sessions, etc.
+    // — ver CloudBackupRepository.kt).
+    match /users/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      // Amizade é espelhada nos dois lados ao aceitar uma solicitação (ver
+      // FriendRepository.addFriendPair) — regra mais aberta que a genérica
+      // abaixo, union de permissão: quem aceita (friendUid) também pode
+      // escrever no documento do remetente (uid), e vice-versa ao desfazer.
+      match /friends/{friendUid} {
+        allow read, write: if request.auth != null &&
+          (request.auth.uid == uid || request.auth.uid == friendUid);
+      }
+
+      match /{collection}/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
     }
   }
 }

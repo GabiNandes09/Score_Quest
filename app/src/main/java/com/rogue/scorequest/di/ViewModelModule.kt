@@ -7,6 +7,7 @@ import com.rogue.scorequest.presentation.viewmodel.AddSessionViewModel
 import com.rogue.scorequest.presentation.viewmodel.AssignRolesViewModel
 import com.rogue.scorequest.presentation.viewmodel.EditFavoritesViewModel
 import com.rogue.scorequest.presentation.viewmodel.EditProfileViewModel
+import com.rogue.scorequest.presentation.viewmodel.FriendsViewModel
 import com.rogue.scorequest.presentation.viewmodel.GameDetailViewModel
 import com.rogue.scorequest.presentation.viewmodel.GamesViewModel
 import com.rogue.scorequest.presentation.viewmodel.GroupDetailViewModel
@@ -34,15 +35,16 @@ val viewModelModule = module {
     viewModel { (gameId: String) -> LiveMatchViewModel(gameId, get(), get(), get(), get(), get(), get(), get()) }
     viewModel { LiveMatchChooseGameViewModel(get(), get()) }
     viewModel { (gameId: String) -> AddEditGameViewModel(gameId, get(), get(), get()) }
-    viewModel { ProfileViewModel(get(), get(), get(), get()) }
+    viewModel { ProfileViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { (sessionId: String) -> SessionDetailViewModel(sessionId, get(), get(), get()) }
     viewModel { EditProfileViewModel(get(), get()) }
     viewModel { EditFavoritesViewModel(get(), get(), get()) }
     viewModel { SettingsViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { LoginViewModel(get()) }
     viewModel { ManagePlayersViewModel(get(), get()) }
+    viewModel { FriendsViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { (playerId: String) -> PlayerDetailViewModel(playerId, get(), get()) }
-    viewModel { (playerId: String) -> AddEditPlayerViewModel(playerId, get(), get(), get(), get()) }
+    viewModel { (playerId: String) -> AddEditPlayerViewModel(playerId, get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { (groupId: String) -> GroupDetailViewModel(groupId, get(), get(), get()) }
     viewModel { (groupId: String) -> AddEditGroupViewModel(groupId, get(), get(), get(), get(), get()) }
     viewModel { (gameId: String) -> ScoreSchemaBuilderViewModel(gameId, get(), get(), get(), get(), get()) }

@@ -4,9 +4,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -24,14 +27,19 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.rogue.scorequest.domain.model.BoardGame
 import com.rogue.scorequest.domain.model.SessionWithDetails
+import com.rogue.scorequest.presentation.components.PlayerAvatarImage
 import com.rogue.scorequest.presentation.viewmodel.ProfileViewModel
+import com.rogue.scorequest.presentation.viewmodel.states.ProfileState
 import com.rogue.scorequest.presentation.viewmodel.states.ProfileTab
+import com.rogue.scorequest.ui.theme.Gold
 import com.rogue.scorequest.utils.toRelativeDayString
 import org.koin.androidx.compose.koinViewModel
 
@@ -46,11 +54,12 @@ fun ProfileScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val pagedSessions = viewModel.pagedSessions.collectAsLazyPagingItems()
+    val effectiveName = state.displayName.ifBlank { state.authDisplayName.orEmpty() }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (state.displayName.isNotBlank()) state.displayName else "Perfil") },
+                title = { Text(effectiveName.ifBlank { "Perfil" }) },
                 actions = {
                     TextButton(onClick = onEditProfileClick) { Text("Editar") }
                     IconButton(onClick = onSettingsClick) {
@@ -61,6 +70,8 @@ fun ProfileScreen(
         }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
+            ProfileHeader(state, effectiveName)
+
             Text(
                 text = "${state.sessionCount} partidas",
                 modifier = Modifier.padding(16.dp),
@@ -85,6 +96,40 @@ fun ProfileScreen(
                 ProfileTab.FAVORITES -> FavoritesTab(state.favoriteGames, onEditFavoritesClick)
                 ProfileTab.ACTIVITIES -> ActivitiesTab(pagedSessions, onSessionClick)
             }
+        }
+    }
+}
+
+/** Avatar local tem prioridade sobre a foto da conta Google — só cai pra foto da conta se o usuário nunca personalizou o avatar do perfil. */
+@Composable
+private fun ProfileHeader(state: ProfileState, effectiveName: String) {
+    val avatarPath = state.avatarUri ?: state.authPhotoUrl
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        PlayerAvatarImage(
+            avatarPath = avatarPath,
+            nickname = effectiveName.ifBlank { "?" },
+            modifier = Modifier.size(96.dp)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        if (effectiveName.isNotBlank()) {
+            Text(
+                text = effectiveName,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        state.username?.let { username ->
+            Text(
+                text = "@$username",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Gold
+            )
         }
     }
 }

@@ -9,28 +9,34 @@ import com.rogue.scorequest.domain.model.WinnerMode
 import kotlinx.serialization.Serializable
 
 /**
- * Espelho completo dos dados locais de um usuário, serializado como um único
- * documento no Firestore (ver CloudBackupRepository). Isolado dos domain
- * models (mesmo motivo do SeedGamesFile, ver data/seed/) — LocalDateTime vira
- * epoch millis (Long), igual às entidades Room.
+ * Espelho dos dados locais de um usuário no Firestore, normalizado por
+ * coleção (um documento por jogo/jogador/partida/etc. — ver
+ * CloudBackupRepository), isolado dos domain models (mesmo motivo do
+ * SeedGamesFile, ver data/seed/) — LocalDateTime vira epoch millis (Long),
+ * igual às entidades Room.
  */
-@Serializable
-data class CloudBackup(
-    val profile: CloudProfile? = null,
-    val games: List<CloudGame> = emptyList(),
-    val libraryEntries: List<CloudLibraryEntry> = emptyList(),
-    val players: List<CloudPlayer> = emptyList(),
-    val groups: List<CloudGroup> = emptyList(),
-    val sessions: List<CloudSession> = emptyList(),
-    val scoreSchemas: List<CloudScoreSchema> = emptyList(),
-    val favoriteGameIds: List<String> = emptyList()
-)
-
 @Serializable
 data class CloudProfile(
     val displayName: String,
     val bio: String? = null,
     val avatarUri: String? = null,
+    val updatedAt: Long
+)
+
+/**
+ * Diretório público mínimo do usuário (coleção `publicProfiles`, raiz do
+ * Firestore, legível por qualquer usuário logado) — nome/e-mail/foto vêm
+ * direto da conta Google e são atualizados a cada login; `username` é gerado
+ * uma única vez (ver EnsurePublicProfileUseCase) e nunca muda depois.
+ */
+@Serializable
+data class CloudPublicProfile(
+    val uid: String,
+    val displayName: String? = null,
+    val email: String? = null,
+    val photoUrl: String? = null,
+    val username: String,
+    val createdAt: Long,
     val updatedAt: Long
 )
 
