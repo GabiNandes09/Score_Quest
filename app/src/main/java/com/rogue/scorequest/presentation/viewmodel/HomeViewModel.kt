@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.rogue.scorequest.domain.model.HomeWidget
 import com.rogue.scorequest.domain.usecase.GetActiveTimerUseCase
 import com.rogue.scorequest.domain.usecase.GetActivityHeatmapUseCase
+import com.rogue.scorequest.domain.usecase.GetAuthStateUseCase
 import com.rogue.scorequest.domain.usecase.GetDurationHistogramUseCase
 import com.rogue.scorequest.domain.usecase.GetHomeStatsUseCase
 import com.rogue.scorequest.domain.usecase.GetHomeWidgetVisibilityUseCase
@@ -32,7 +33,8 @@ class HomeViewModel(
     getDurationHistogram: GetDurationHistogramUseCase,
     getActiveTimer: GetActiveTimerUseCase,
     getHomeWidgetVisibility: GetHomeWidgetVisibilityUseCase,
-    private val setHomeWidgetVisible: SetHomeWidgetVisibleUseCase
+    private val setHomeWidgetVisible: SetHomeWidgetVisibleUseCase,
+    getAuthState: GetAuthStateUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeState())
@@ -45,10 +47,15 @@ class HomeViewModel(
             }
         }
         viewModelScope.launch {
+            getAuthState().collect { user ->
+                _state.value = _state.value.copy(authDisplayName = user?.displayName)
+            }
+        }
+        viewModelScope.launch {
             getHomeStats().collect { stats ->
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    streakDays = stats.streakDays,
+                    streakWeeks = stats.streakWeeks,
                     isStreakActive = stats.isStreakActive,
                     weekMinutes = stats.weekMinutes,
                     totalMinutes = stats.totalMinutes,

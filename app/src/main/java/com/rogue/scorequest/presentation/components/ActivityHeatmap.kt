@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.rogue.scorequest.domain.model.DayActivity
 import com.rogue.scorequest.ui.theme.Gold
 import com.rogue.scorequest.utils.toDayMonthLabel
+import com.rogue.scorequest.utils.toMonthAbbreviation
 import java.time.LocalDate
 
 private val LEVEL_0 = Color(0xFF2C2C2C)
@@ -52,8 +53,40 @@ fun ActivityHeatmap(days: List<DayActivity>, modifier: Modifier = Modifier) {
     val padding = (7 - days.size % 7) % 7
     val weeks = (List<DayActivity?>(padding) { null } + days).chunked(7)
 
+    // Rótulo do mês só na 1ª coluna em que ele aparece (estilo GitHub) — marca a
+    // transição, não repete em toda coluna; o texto pode ultrapassar visualmente
+    // a largura da própria coluna sem empurrar as colunas seguintes.
+    var lastLabeledMonth: Int? = null
+    val monthLabels = weeks.map { week ->
+        val firstDayOfColumn = week.filterNotNull().firstOrNull()?.let { LocalDate.parse(it.day) }
+        if (firstDayOfColumn != null && firstDayOfColumn.monthValue != lastLabeledMonth) {
+            lastLabeledMonth = firstDayOfColumn.monthValue
+            firstDayOfColumn.toMonthAbbreviation()
+        } else {
+            null
+        }
+    }
+
     Column(modifier = modifier) {
         Row(horizontalArrangement = Arrangement.spacedBy(CELL_SPACING_DP.dp)) {
+            monthLabels.forEach { label ->
+                Box(modifier = Modifier.width(CELL_SIZE_DP.dp)) {
+                    if (label != null) {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
+                }
+            }
+        }
+        Row(
+            modifier = Modifier.padding(top = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(CELL_SPACING_DP.dp)
+        ) {
             weeks.forEach { week ->
                 Column(verticalArrangement = Arrangement.spacedBy(CELL_SPACING_DP.dp)) {
                     week.forEach { cell ->

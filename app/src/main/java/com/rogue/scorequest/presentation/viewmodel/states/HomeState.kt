@@ -13,7 +13,10 @@ import com.rogue.scorequest.domain.model.SessionWithDetails
 data class HomeState(
     val isLoading: Boolean = true,
     val displayName: String = "",
-    val streakDays: Int = 0,
+    // Fallback só usado quando o perfil local (displayName acima) está vazio — mesma
+    // regra já usada no Perfil (ver ProfileScreen.kt, "effectiveName").
+    val authDisplayName: String? = null,
+    val streakWeeks: Int = 0,
     val isStreakActive: Boolean = false,
     val totalSessions: Int = 0,
     val weekMinutes: Int = 0,

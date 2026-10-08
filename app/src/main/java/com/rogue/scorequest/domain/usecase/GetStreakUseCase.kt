@@ -3,6 +3,7 @@ package com.rogue.scorequest.domain.usecase
 import com.rogue.scorequest.data.repository.GameSessionRepository
 import com.rogue.scorequest.domain.model.StreakInfo
 import com.rogue.scorequest.utils.toLocalDateTime
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.flow.Flow
@@ -13,32 +14,36 @@ class GetStreakUseCase(
 ) {
     operator fun invoke(): Flow<StreakInfo> =
         repository.getAllSessionDates().map { epochList ->
-            val dates = epochList
-                .map { it.toLocalDateTime().toLocalDate() }
+            // Agrupado por semana (segunda-feira da semana de cada partida, mesma
+            // convenção de início de semana usada em GetHomeStatsUseCase.weekMinutes) —
+            // a lógica de sequência consecutiva é igual à versão por dia, só na
+            // granularidade de semana em vez de dia.
+            val weeks = epochList
+                .map { it.toLocalDateTime().toLocalDate().with(DayOfWeek.MONDAY) }
                 .distinct()
                 .sortedDescending()
 
-            if (dates.isEmpty()) return@map StreakInfo(days = 0, isActive = false)
+            if (weeks.isEmpty()) return@map StreakInfo(weeks = 0, isActive = false)
 
-            val today = LocalDate.now()
-            val mostRecent = dates.first()
-            val gapFromToday = ChronoUnit.DAYS.between(mostRecent, today)
+            val currentWeek = LocalDate.now().with(DayOfWeek.MONDAY)
+            val mostRecentWeek = weeks.first()
+            val gapFromCurrentWeek = ChronoUnit.WEEKS.between(mostRecentWeek, currentWeek)
 
-            if (gapFromToday <= 1) {
+            if (gapFromCurrentWeek <= 1) {
                 var streak = 1
-                var cursor = mostRecent
-                for (i in 1 until dates.size) {
-                    val expected = cursor.minusDays(1)
-                    if (dates[i] == expected) {
+                var cursor = mostRecentWeek
+                for (i in 1 until weeks.size) {
+                    val expected = cursor.minusWeeks(1)
+                    if (weeks[i] == expected) {
                         streak++
                         cursor = expected
                     } else {
                         break
                     }
                 }
-                StreakInfo(days = streak, isActive = true)
+                StreakInfo(weeks = streak, isActive = true)
             } else {
-                StreakInfo(days = gapFromToday.toInt(), isActive = false)
+                StreakInfo(weeks = gapFromCurrentWeek.toInt(), isActive = false)
             }
         }
 }

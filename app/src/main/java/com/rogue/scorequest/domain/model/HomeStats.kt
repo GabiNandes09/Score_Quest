@@ -19,7 +19,7 @@ data class PlayerPlayCount(
 )
 
 data class HomeStats(
-    val streakDays: Int,
+    val streakWeeks: Int,
     val isStreakActive: Boolean,
     val topGames: List<GamePlayCount>,
     val topPlayersByWins: List<PlayerWinCount>,

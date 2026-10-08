@@ -26,4 +26,11 @@ private val FULL_MONTH_NAMES = arrayOf(
     "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
 )
 
+private val MONTH_ABBREVIATIONS = arrayOf(
+    "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+    "Jul", "Ago", "Set", "Out", "Nov", "Dez"
+)
+
 fun LocalDate.toDayMonthLabel(): String = "$dayOfMonth de ${FULL_MONTH_NAMES[monthValue - 1]}"
+
+fun LocalDate.toMonthAbbreviation(): String = MONTH_ABBREVIATIONS[monthValue - 1]

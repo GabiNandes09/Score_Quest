@@ -136,8 +136,9 @@ private fun HomeContent(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val effectiveName = state.displayName.ifBlank { state.authDisplayName.orEmpty() }
             Text(
-                text = if (state.displayName.isNotBlank()) "Olá, ${state.displayName}" else "Olá!",
+                text = if (effectiveName.isNotBlank()) "Olá, $effectiveName" else "Olá!",
                 style = MaterialTheme.typography.headlineSmall
             )
             Row {
@@ -168,7 +169,7 @@ private fun HomeContent(
             totalSessions = state.totalSessions,
             weekMinutes = state.weekMinutes,
             totalMinutes = state.totalMinutes,
-            streakDays = state.streakDays,
+            streakWeeks = state.streakWeeks,
             isStreakActive = state.isStreakActive
         )
 
@@ -297,7 +298,7 @@ private fun HomeStatsCard(
     totalSessions: Int,
     weekMinutes: Int,
     totalMinutes: Int,
-    streakDays: Int,
+    streakWeeks: Int,
     isStreakActive: Boolean
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
@@ -312,7 +313,7 @@ private fun HomeStatsCard(
             StatIconItem(icon = Icons.Filled.Timer, value = formatDuration(totalMinutes))
             StatIconItem(
                 icon = if (isStreakActive) Icons.Filled.LocalFireDepartment else Icons.Filled.AcUnit,
-                value = "$streakDays ${if (streakDays == 1) "dia" else "dias"}"
+                value = "$streakWeeks ${if (streakWeeks == 1) "semana" else "semanas"}"
             )
         }
     }

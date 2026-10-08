@@ -55,8 +55,8 @@ FAB dourado sobreposto abre o wizard de registro de partida — visível junto c
 ## 5. Telas e Funcionalidades Implementadas
 
 ### 5.1 Home
-Saudação, sino, ícone de engrenagem (abre configuração de visibilidade dos widgets), banner de partida em andamento (se houver cronômetro ativo), botões "Registrar partida" e "Iniciar partida ao vivo", card de estatísticas (partidas, semana atual, horas totais, streak), card "Última jogatina", e 5 widgets ocultáveis individualmente:
-- Atividade recente (heatmap, 90 dias)
+Saudação com o nome do usuário (perfil local; se vazio, usa o nome da conta Google logada), sino, ícone de engrenagem (abre configuração de visibilidade dos widgets), banner de partida em andamento (se houver cronômetro ativo), botões "Registrar partida" e "Iniciar partida ao vivo", card de estatísticas (partidas, semana atual, horas totais, streak **semanal** — semanas seguidas com ao menos uma partida, não mais streak diária), card "Última jogatina", e 5 widgets ocultáveis individualmente:
+- Atividade recente (heatmap, 90 dias, com marcação do nome abreviado do mês acima das colunas em que o mês muda)
 - Ranking dos mais jogados (top 5)
 - Mais vitórias (top 5 jogadores)
 - Partidas por mês (linha, ano corrente, mínimo 3 meses com dado)

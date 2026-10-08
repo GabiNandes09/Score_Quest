@@ -23,7 +23,7 @@ class GetHomeStatsUseCase(
             sessionRepository.getTotalDurationMinutes()
         ) { streak, topGames, topPlayersByWins, weekMinutes, totalMinutes ->
             HomeStats(
-                streakDays = streak.days,
+                streakWeeks = streak.weeks,
                 isStreakActive = streak.isActive,
                 topGames = topGames,
                 topPlayersByWins = topPlayersByWins,
