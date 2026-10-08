@@ -1,5 +1,6 @@
 package com.rogue.scorequest.data.repository
 
+import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.rogue.scorequest.data.cloud.CloudGame
@@ -15,26 +16,46 @@ import kotlinx.coroutines.tasks.await
 
 private const val USERS_COLLECTION = "users"
 private const val GAMES_COLLECTION = "games"
+private const val SCHEMAS_COLLECTION = "scoreSchemas"
 private const val LIBRARY_COLLECTION = "libraryEntries"
 private const val PLAYERS_COLLECTION = "players"
 private const val GROUPS_COLLECTION = "groups"
 private const val SESSIONS_COLLECTION = "sessions"
-private const val SCHEMAS_COLLECTION = "scoreSchemas"
 private const val FAVORITES_FIELD = "favoriteGameIds"
 
 // Limite real do Firestore é 500 operações por WriteBatch — chunка com folga.
 private const val BATCH_CHUNK_SIZE = 450
 
 /**
- * Backup normalizado por coleção em `users/{uid}/...` (um documento por
- * jogo/jogador/partida/etc.) — ver CLAUDE.md "Conta e sincronização com
- * Firebase". Perfil + favoritos ficam no próprio documento `users/{uid}`
- * (escritos sempre com merge, pra um não sobrescrever o outro).
+ * Dois escopos de dado no Firestore (pedido explícito do usuário):
+ * - **Catálogo compartilhado** (`games`/`scoreSchemas`, coleções no nível
+ *   raiz): jogos e pontuações personalizadas são globais, visíveis/editáveis
+ *   por qualquer usuário logado — não pertencem a um dono. Mesmo espírito do
+ *   "qualquer usuário edita, sem restrição" já documentado pra pontuação
+ *   personalizada antes de ter conta.
+ * - **Dado pessoal** (`users/{uid}/...`): estante (`libraryEntries`),
+ *   jogadores, grupos, partidas e perfil continuam privados por conta.
  */
 class CloudBackupRepository(
     private val firestore: FirebaseFirestore
 ) {
     private fun userDoc(uid: String) = firestore.collection(USERS_COLLECTION).document(uid)
+
+    // --- Catálogo compartilhado (sem dono) ---
+
+    suspend fun uploadGames(games: List<CloudGame>) =
+        uploadCollection(firestore.collection(GAMES_COLLECTION), games) { it.id to toFirestoreMap(CloudGame.serializer(), it) }
+
+    suspend fun downloadGames(): List<CloudGame> =
+        downloadCollection(firestore.collection(GAMES_COLLECTION)) { fromFirestoreMap(CloudGame.serializer(), it) }
+
+    suspend fun uploadScoreSchemas(schemas: List<CloudScoreSchema>) =
+        uploadCollection(firestore.collection(SCHEMAS_COLLECTION), schemas) { it.gameId to toFirestoreMap(CloudScoreSchema.serializer(), it) }
+
+    suspend fun downloadScoreSchemas(): List<CloudScoreSchema> =
+        downloadCollection(firestore.collection(SCHEMAS_COLLECTION)) { fromFirestoreMap(CloudScoreSchema.serializer(), it) }
+
+    // --- Dado pessoal (privado por conta) ---
 
     suspend fun uploadProfile(uid: String, profile: CloudProfile) {
         userDoc(uid).set(toFirestoreMap(CloudProfile.serializer(), profile), SetOptions.merge()).await()
@@ -55,50 +76,36 @@ class CloudBackupRepository(
         return (data[FAVORITES_FIELD] as? List<String>).orEmpty()
     }
 
-    suspend fun uploadGames(uid: String, games: List<CloudGame>) =
-        uploadCollection(uid, GAMES_COLLECTION, games) { it.id to toFirestoreMap(CloudGame.serializer(), it) }
-
-    suspend fun downloadGames(uid: String): List<CloudGame> =
-        downloadCollection(uid, GAMES_COLLECTION) { fromFirestoreMap(CloudGame.serializer(), it) }
-
     suspend fun uploadLibraryEntries(uid: String, entries: List<CloudLibraryEntry>) =
-        uploadCollection(uid, LIBRARY_COLLECTION, entries) { it.gameId to toFirestoreMap(CloudLibraryEntry.serializer(), it) }
+        uploadCollection(userDoc(uid).collection(LIBRARY_COLLECTION), entries) { it.gameId to toFirestoreMap(CloudLibraryEntry.serializer(), it) }
 
     suspend fun downloadLibraryEntries(uid: String): List<CloudLibraryEntry> =
-        downloadCollection(uid, LIBRARY_COLLECTION) { fromFirestoreMap(CloudLibraryEntry.serializer(), it) }
+        downloadCollection(userDoc(uid).collection(LIBRARY_COLLECTION)) { fromFirestoreMap(CloudLibraryEntry.serializer(), it) }
 
     suspend fun uploadPlayers(uid: String, players: List<CloudPlayer>) =
-        uploadCollection(uid, PLAYERS_COLLECTION, players) { it.id to toFirestoreMap(CloudPlayer.serializer(), it) }
+        uploadCollection(userDoc(uid).collection(PLAYERS_COLLECTION), players) { it.id to toFirestoreMap(CloudPlayer.serializer(), it) }
 
     suspend fun downloadPlayers(uid: String): List<CloudPlayer> =
-        downloadCollection(uid, PLAYERS_COLLECTION) { fromFirestoreMap(CloudPlayer.serializer(), it) }
+        downloadCollection(userDoc(uid).collection(PLAYERS_COLLECTION)) { fromFirestoreMap(CloudPlayer.serializer(), it) }
 
     suspend fun uploadGroups(uid: String, groups: List<CloudGroup>) =
-        uploadCollection(uid, GROUPS_COLLECTION, groups) { it.id to toFirestoreMap(CloudGroup.serializer(), it) }
+        uploadCollection(userDoc(uid).collection(GROUPS_COLLECTION), groups) { it.id to toFirestoreMap(CloudGroup.serializer(), it) }
 
     suspend fun downloadGroups(uid: String): List<CloudGroup> =
-        downloadCollection(uid, GROUPS_COLLECTION) { fromFirestoreMap(CloudGroup.serializer(), it) }
+        downloadCollection(userDoc(uid).collection(GROUPS_COLLECTION)) { fromFirestoreMap(CloudGroup.serializer(), it) }
 
     suspend fun uploadSessions(uid: String, sessions: List<CloudSession>) =
-        uploadCollection(uid, SESSIONS_COLLECTION, sessions) { it.id to toFirestoreMap(CloudSession.serializer(), it) }
+        uploadCollection(userDoc(uid).collection(SESSIONS_COLLECTION), sessions) { it.id to toFirestoreMap(CloudSession.serializer(), it) }
 
     suspend fun downloadSessions(uid: String): List<CloudSession> =
-        downloadCollection(uid, SESSIONS_COLLECTION) { fromFirestoreMap(CloudSession.serializer(), it) }
-
-    suspend fun uploadScoreSchemas(uid: String, schemas: List<CloudScoreSchema>) =
-        uploadCollection(uid, SCHEMAS_COLLECTION, schemas) { it.gameId to toFirestoreMap(CloudScoreSchema.serializer(), it) }
-
-    suspend fun downloadScoreSchemas(uid: String): List<CloudScoreSchema> =
-        downloadCollection(uid, SCHEMAS_COLLECTION) { fromFirestoreMap(CloudScoreSchema.serializer(), it) }
+        downloadCollection(userDoc(uid).collection(SESSIONS_COLLECTION)) { fromFirestoreMap(CloudSession.serializer(), it) }
 
     private suspend fun <T> uploadCollection(
-        uid: String,
-        collection: String,
+        ref: CollectionReference,
         items: List<T>,
         toDoc: (T) -> Pair<String, Map<String, Any?>>
     ) {
         if (items.isEmpty()) return
-        val ref = userDoc(uid).collection(collection)
         items.chunked(BATCH_CHUNK_SIZE).forEach { chunk ->
             val batch = firestore.batch()
             chunk.forEach { item ->
@@ -110,11 +117,10 @@ class CloudBackupRepository(
     }
 
     private suspend fun <T> downloadCollection(
-        uid: String,
-        collection: String,
+        ref: CollectionReference,
         fromDoc: (Map<String, Any?>) -> T
     ): List<T> {
-        val snapshot = userDoc(uid).collection(collection).get().await()
+        val snapshot = ref.get().await()
         return snapshot.documents.mapNotNull { doc -> doc.data?.let { runCatching { fromDoc(it) }.getOrNull() } }
     }
 }

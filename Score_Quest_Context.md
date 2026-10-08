@@ -103,9 +103,10 @@ O catálogo é populado hoje via **Importar/Exportar JSON** (não mais um seed p
 
 Login com Google **opcional** (via Configurações) + backup/sincronização dos dados locais na nuvem (Firebase Auth + Firestore). O app continua funcionando 100% offline sem conta, exatamente como antes — conta é só um jeito de não perder/poder restaurar os dados em outro aparelho.
 
-- **Entrar**: Configurações → "Entrar com Google" → tela de login dedicada (Credential Manager). Ao logar com sucesso, os dados já presentes localmente no aparelho são automaticamente associados àquele usuário — se o aparelho já tinha jogos/jogadores, eles sobem pra nuvem; se estava vazio (ex.: depois de um logout), o backup existente da nuvem é baixado.
-- **Sair**: Configurações → "Sair" — desloga **e apaga todos os dados locais do aparelho** (catálogo, estante, jogadores, partidas, pontuações personalizadas), pra não misturar com o próximo usuário/conta que usar o mesmo aparelho.
-- Escopo: um usuário só tem uma "cópia na nuvem" de cada vez (sem múltiplos dispositivos editando a mesma conta simultaneamente, sem resolução de conflito). Sem recursos sociais (amigos, feed, @username) — isso continua no backlog de V2.
+- **Entrar**: Configurações → "Entrar com Google" → tela de login dedicada (Credential Manager). Ao logar com sucesso, os dados pessoais já presentes localmente no aparelho (jogadores, partidas, grupos, perfil, estante) são automaticamente associados àquele usuário — se o aparelho já tinha jogador cadastrado, eles sobem pra nuvem; se estava vazio (ex.: depois de um logout), o backup existente da nuvem é baixado.
+- **Catálogo de jogos é compartilhado entre todos os usuários** (jogos + pontuação personalizada), não pertence a uma conta — sincronizado nos dois sentidos a cada login. Sua **estante** (status Tenho/Quero/Jogado, empréstimo, avaliação) continua privada, só referenciando o jogo do catálogo compartilhado.
+- **Sair**: Configurações → "Sair" — desloga **e apaga todos os dados locais do aparelho** (catálogo, estante, jogadores, partidas, pontuações personalizadas — inclusive o catálogo, que é baixado de novo no próximo login de qualquer conta), pra não misturar com o próximo usuário/conta que usar o mesmo aparelho.
+- Escopo: um usuário só tem uma "cópia na nuvem" de cada vez (sem múltiplos dispositivos editando a mesma conta simultaneamente, sem resolução de conflito). Sem recursos sociais (amigos, feed, @username, compartilhar sessão/grupo entre contas) — modelo desenhado mas não implementado em `CLAUDE.md` ("Modelo de conexões/amigos"), continua no backlog de V2.
 
 ## 8. O que ainda não existe
 
