@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "535509449752-d9ubvdnh6tp2ck9vstdklsgunhph8qlu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rogue.scorequest",
+            "certificate_hash": "2f884ec119698e0a075f20758d1e692d8d09132d"
+          }
+        },
+        {
           "client_id": "535509449752-8ogt3hpv15cadullse52mph16rseud59.apps.googleusercontent.com",
           "client_type": 3
         }
