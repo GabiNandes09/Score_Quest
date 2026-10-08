@@ -19,6 +19,7 @@ import com.rogue.scorequest.domain.usecase.CreatePlayerUseCase
 import com.rogue.scorequest.domain.usecase.DeleteGameSessionUseCase
 import com.rogue.scorequest.domain.usecase.DeletePlayerGroupUseCase
 import com.rogue.scorequest.domain.usecase.DeletePlayerUseCase
+import com.rogue.scorequest.domain.usecase.EnsurePublicProfileUseCase
 import com.rogue.scorequest.domain.usecase.ExportGamesUseCase
 import com.rogue.scorequest.domain.usecase.FindGroupWithExactMembersUseCase
 import com.rogue.scorequest.domain.usecase.FinishTimerUseCase
@@ -165,6 +166,7 @@ val appModule = module {
     factory {
         SyncAccountDataUseCase(get(), get(), get(), get(), get(), get(), get())
     }
-    factory { SignInWithGoogleUseCase(get(), get()) }
+    factory { EnsurePublicProfileUseCase(get()) }
+    factory { SignInWithGoogleUseCase(get(), get(), get()) }
     factory { SignOutUseCase(get(), get()) }
 }

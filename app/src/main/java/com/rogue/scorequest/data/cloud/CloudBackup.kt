@@ -23,6 +23,23 @@ data class CloudProfile(
     val updatedAt: Long
 )
 
+/**
+ * Diretório público mínimo do usuário (coleção `publicProfiles`, raiz do
+ * Firestore, legível por qualquer usuário logado) — nome/e-mail/foto vêm
+ * direto da conta Google e são atualizados a cada login; `username` é gerado
+ * uma única vez (ver EnsurePublicProfileUseCase) e nunca muda depois.
+ */
+@Serializable
+data class CloudPublicProfile(
+    val uid: String,
+    val displayName: String? = null,
+    val email: String? = null,
+    val photoUrl: String? = null,
+    val username: String,
+    val createdAt: Long,
+    val updatedAt: Long
+)
+
 @Serializable
 data class CloudGame(
     val id: String,

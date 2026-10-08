@@ -8,6 +8,7 @@ import com.rogue.scorequest.data.cloud.CloudGroup
 import com.rogue.scorequest.data.cloud.CloudLibraryEntry
 import com.rogue.scorequest.data.cloud.CloudPlayer
 import com.rogue.scorequest.data.cloud.CloudProfile
+import com.rogue.scorequest.data.cloud.CloudPublicProfile
 import com.rogue.scorequest.data.cloud.CloudScoreSchema
 import com.rogue.scorequest.data.cloud.CloudSession
 import com.rogue.scorequest.data.cloud.fromFirestoreMap
@@ -17,6 +18,8 @@ import kotlinx.coroutines.tasks.await
 private const val USERS_COLLECTION = "users"
 private const val GAMES_COLLECTION = "games"
 private const val SCHEMAS_COLLECTION = "scoreSchemas"
+private const val PUBLIC_PROFILES_COLLECTION = "publicProfiles"
+private const val USERNAME_COUNTERS_COLLECTION = "usernameCounters"
 private const val LIBRARY_COLLECTION = "libraryEntries"
 private const val PLAYERS_COLLECTION = "players"
 private const val GROUPS_COLLECTION = "groups"
@@ -54,6 +57,36 @@ class CloudBackupRepository(
 
     suspend fun downloadScoreSchemas(): List<CloudScoreSchema> =
         downloadCollection(firestore.collection(SCHEMAS_COLLECTION)) { fromFirestoreMap(CloudScoreSchema.serializer(), it) }
+
+    // --- Diretório público (nome/e-mail/foto da conta Google + @username) ---
+
+    suspend fun uploadPublicProfile(profile: CloudPublicProfile) {
+        firestore.collection(PUBLIC_PROFILES_COLLECTION).document(profile.uid)
+            .set(toFirestoreMap(CloudPublicProfile.serializer(), profile))
+            .await()
+    }
+
+    suspend fun downloadPublicProfile(uid: String): CloudPublicProfile? {
+        val data = firestore.collection(PUBLIC_PROFILES_COLLECTION).document(uid).get().await().data ?: return null
+        return runCatching { fromFirestoreMap(CloudPublicProfile.serializer(), data) }.getOrNull()
+    }
+
+    /**
+     * Reserva o próximo número disponível pro slug (primeiro nome normalizado,
+     * case-insensitive), via transação — garante unicidade mesmo com dois
+     * cadastros concorrentes do mesmo primeiro nome. 1ª pessoa com aquele nome
+     * não leva sufixo (retorna 1); da 2ª em diante, o chamador usa o número
+     * pra montar "Nome_2", "Nome_3" etc.
+     */
+    suspend fun reserveUsernameOrdinal(slug: String): Long {
+        val counterRef = firestore.collection(USERNAME_COUNTERS_COLLECTION).document(slug)
+        return firestore.runTransaction { transaction ->
+            val current = transaction.get(counterRef).getLong("count") ?: 0L
+            val ordinal = current + 1
+            transaction.set(counterRef, mapOf("count" to ordinal))
+            ordinal
+        }.await()
+    }
 
     // --- Dado pessoal (privado por conta) ---
 
