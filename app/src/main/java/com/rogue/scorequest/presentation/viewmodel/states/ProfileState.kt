@@ -12,5 +12,11 @@ data class ProfileState(
     val avatarUri: String? = null,
     val favoriteGames: List<BoardGame> = emptyList(),
     val sessionCount: Int = 0,
-    val selectedTab: ProfileTab = ProfileTab.FAVORITES
+    val selectedTab: ProfileTab = ProfileTab.FAVORITES,
+    // Vêm da conta Google (ver AuthUser) — authDisplayName/authPhotoUrl só servem de
+    // fallback quando o perfil local (displayName/avatarUri acima) ainda está vazio;
+    // username não tem equivalente local, só existe se a conta estiver logada.
+    val authDisplayName: String? = null,
+    val authPhotoUrl: String? = null,
+    val username: String? = null
 )

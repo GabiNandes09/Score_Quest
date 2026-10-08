@@ -42,6 +42,7 @@ import com.rogue.scorequest.domain.usecase.GetPlayerStatsUseCase
 import com.rogue.scorequest.domain.usecase.GetPlayerUseCase
 import com.rogue.scorequest.domain.usecase.GetPlayersUseCase
 import com.rogue.scorequest.domain.usecase.GetProfileUseCase
+import com.rogue.scorequest.domain.usecase.GetPublicUsernameUseCase
 import com.rogue.scorequest.domain.usecase.GetRecentSessionsUseCase
 import com.rogue.scorequest.domain.usecase.GetSessionCountUseCase
 import com.rogue.scorequest.domain.usecase.GetSessionDetailUseCase
@@ -139,6 +140,7 @@ val appModule = module {
 
     // Use cases - perfil
     factory { GetProfileUseCase(get()) }
+    factory { GetPublicUsernameUseCase(get()) }
     factory { UpdateProfileUseCase(get()) }
     factory { GetFavoriteGamesUseCase(get()) }
     factory { SetFavoriteGameUseCase(get()) }

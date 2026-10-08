@@ -81,7 +81,7 @@ Fluxo separado do wizard retrospectivo — inicia um cronômetro real ao começa
 Mesmo padrão visual da Confirmação do wizard — resumo da partida + placar, com nome do grupo (se houver).
 
 ### 5.8 Perfil
-Avatar, bio, favoritos (editável, máx. 3), aba Atividades com lista paginada de todas as partidas.
+Header com avatar, nome e (se logado com Google) `@username` abaixo do nome em dourado, favoritos (editável, máx. 3), aba Atividades com lista paginada de todas as partidas.
 
 ### 5.9 Configurações
 Seção de conta (**Entrar com Google** / nome+e-mail da conta + **Sair**, ver seção 9), toggle de tema claro/escuro, **Importar JSON** e **Exportar JSON** do acervo de jogos (ver seção 6).

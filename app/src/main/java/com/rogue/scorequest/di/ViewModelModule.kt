@@ -34,7 +34,7 @@ val viewModelModule = module {
     viewModel { (gameId: String) -> LiveMatchViewModel(gameId, get(), get(), get(), get(), get(), get(), get()) }
     viewModel { LiveMatchChooseGameViewModel(get(), get()) }
     viewModel { (gameId: String) -> AddEditGameViewModel(gameId, get(), get(), get()) }
-    viewModel { ProfileViewModel(get(), get(), get(), get()) }
+    viewModel { ProfileViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { (sessionId: String) -> SessionDetailViewModel(sessionId, get(), get(), get()) }
     viewModel { EditProfileViewModel(get(), get()) }
     viewModel { EditFavoritesViewModel(get(), get(), get()) }
