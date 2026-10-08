@@ -45,6 +45,10 @@ interface GameSessionDao {
     @Query("SELECT * FROM game_session WHERE deleted_at IS NULL ORDER BY date DESC, created_at DESC")
     fun getSessionsWithScoresPaged(): PagingSource<Int, SessionWithScoresEntity>
 
+    @Transaction
+    @Query("SELECT * FROM game_session WHERE deleted_at IS NULL ORDER BY date DESC, created_at DESC")
+    suspend fun getAllWithScoresOnce(): List<SessionWithScoresEntity>
+
     @Query("SELECT date FROM game_session WHERE deleted_at IS NULL ORDER BY date DESC")
     fun getAllSessionDates(): Flow<List<Long>>
 

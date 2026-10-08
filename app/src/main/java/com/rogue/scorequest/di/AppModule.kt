@@ -1,7 +1,9 @@
 package com.rogue.scorequest.di
 
 import com.rogue.scorequest.data.repository.ActiveTimerRepository
+import com.rogue.scorequest.data.repository.AuthRepository
 import com.rogue.scorequest.data.repository.BoardGameRepository
+import com.rogue.scorequest.data.repository.CloudBackupRepository
 import com.rogue.scorequest.data.repository.GameScoreSchemaRepository
 import com.rogue.scorequest.data.repository.GameSessionRepository
 import com.rogue.scorequest.data.repository.PlayerGroupRepository
@@ -11,6 +13,7 @@ import com.rogue.scorequest.domain.usecase.AddUserGameUseCase
 import com.rogue.scorequest.domain.usecase.CalculateScoreFormulaUseCase
 import com.rogue.scorequest.domain.usecase.CancelTimerUseCase
 import com.rogue.scorequest.domain.usecase.ClearActiveTimerForGameUseCase
+import com.rogue.scorequest.domain.usecase.ClearLocalDataUseCase
 import com.rogue.scorequest.domain.usecase.CreatePlayerGroupUseCase
 import com.rogue.scorequest.domain.usecase.CreatePlayerUseCase
 import com.rogue.scorequest.domain.usecase.DeleteGameSessionUseCase
@@ -21,6 +24,7 @@ import com.rogue.scorequest.domain.usecase.FindGroupWithExactMembersUseCase
 import com.rogue.scorequest.domain.usecase.FinishTimerUseCase
 import com.rogue.scorequest.domain.usecase.GetActiveTimerUseCase
 import com.rogue.scorequest.domain.usecase.GetActivityHeatmapUseCase
+import com.rogue.scorequest.domain.usecase.GetAuthStateUseCase
 import com.rogue.scorequest.domain.usecase.GetDuplicableSchemasUseCase
 import com.rogue.scorequest.domain.usecase.GetDurationHistogramUseCase
 import com.rogue.scorequest.domain.usecase.GetFavoriteGamesUseCase
@@ -56,7 +60,10 @@ import com.rogue.scorequest.domain.usecase.SetFavoriteGameUseCase
 import com.rogue.scorequest.domain.usecase.SetLoanUseCase
 import com.rogue.scorequest.domain.usecase.SetHomeWidgetVisibleUseCase
 import com.rogue.scorequest.domain.usecase.SetThemePreferenceUseCase
+import com.rogue.scorequest.domain.usecase.SignInWithGoogleUseCase
+import com.rogue.scorequest.domain.usecase.SignOutUseCase
 import com.rogue.scorequest.domain.usecase.StartTimerUseCase
+import com.rogue.scorequest.domain.usecase.SyncAccountDataUseCase
 import com.rogue.scorequest.domain.usecase.UpdateGameSessionUseCase
 import com.rogue.scorequest.domain.usecase.UpdateLibraryStatusUseCase
 import com.rogue.scorequest.domain.usecase.UpdatePlayerGroupUseCase
@@ -75,6 +82,8 @@ val appModule = module {
     single { GameScoreSchemaRepository(get()) }
     single { ActiveTimerRepository(get()) }
     single { PlayerGroupRepository(get()) }
+    single { AuthRepository(get()) }
+    single { CloudBackupRepository(get()) }
 
     // Use cases - jogos/estante
     factory { GetGamesUseCase(get()) }
@@ -149,4 +158,13 @@ val appModule = module {
     factory { CancelTimerUseCase(get()) }
     factory { FinishTimerUseCase(get()) }
     factory { ClearActiveTimerForGameUseCase(get()) }
+
+    // Use cases - conta e sincronização com a nuvem
+    factory { GetAuthStateUseCase(get()) }
+    factory { ClearLocalDataUseCase(get()) }
+    factory {
+        SyncAccountDataUseCase(get(), get(), get(), get(), get(), get(), get())
+    }
+    factory { SignInWithGoogleUseCase(get(), get()) }
+    factory { SignOutUseCase(get(), get()) }
 }

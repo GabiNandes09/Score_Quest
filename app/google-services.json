@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "535509449752",
+    "project_id": "scorequest-74f15",
+    "storage_bucket": "scorequest-74f15.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:535509449752:android:0a5c1a71e07221e76dd76d",
+        "android_client_info": {
+          "package_name": "com.rogue.scorequest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "535509449752-8ogt3hpv15cadullse52mph16rseud59.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD2e9fE24RRQhrmytaV7O8FWSEQPMo1MBA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "535509449752-8ogt3hpv15cadullse52mph16rseud59.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

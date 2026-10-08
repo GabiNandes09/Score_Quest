@@ -65,6 +65,9 @@ class GameSessionRepository(
             .flow
             .map { pagingData -> pagingData.map { it.toDomain() } }
 
+    suspend fun getAllSessionsOnce(): List<SessionWithDetails> =
+        gameSessionDao.getAllWithScoresOnce().map { it.toDomain() }
+
     fun getTopPlayedGames(limit: Int): Flow<List<GamePlayCount>> = gameSessionDao.getTopPlayedGames(limit)
 
     fun getTopPlayersByWins(limit: Int): Flow<List<PlayerWinCount>> = scoreEntryDao.getTopPlayersByWins(limit)

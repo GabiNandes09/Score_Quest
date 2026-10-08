@@ -12,8 +12,9 @@
 
 ## V2 — Contas & Nuvem
 
-- Contas de usuário reais (login email/senha + Google).
-- Sincronização em nuvem; vínculo Player local → User real, com convite/confirmação.
+- **Login com Google + backup/sync na nuvem (Firebase Auth + Firestore) já implementado**, cherry-picked pra dentro do V1 por pedido do usuário — ver CLAUDE.md ("Conta e sincronização com Firebase") e Score_Quest_Context.md (seção 7). Decide a pergunta "Firebase Auth vs. backend próprio" que estava em aberto abaixo: **Firebase**, não backend próprio.
+- Pendente ainda dentro do que já foi iniciado: publicar `firestore.rules` no Firebase Console (arquivo já existe na raiz do repo, só falta o deploy manual); sync é só full push/pull determinado por "local vazio ou não" — **sem merge bidirecional real** (dois aparelhos editando a mesma conta ao mesmo tempo não é tratado); login só por Google (sem e-mail/senha).
+- Vínculo Player local → User real, com convite/confirmação (perfis de jogadores continuam sendo só locais, não contas).
 - **@username** público e pesquisável (validação de unicidade, normalização, checagem de disponibilidade em tempo real).
 - Amigos: busca por @username ou QR Code (gerar/ler), modelo estritamente de **amigos mútuos** (sem "seguir" assimétrico).
 - Feed social de atividades com curtidas e comentários; quando o social amadurecer, a Home passa a ser centrada nele, com as estatísticas pessoais migrando pra aba Perfil.
@@ -52,5 +53,4 @@
 ## Itens em Aberto Gerais
 
 - **Modelo de monetização definitivo** — decisão ganhou urgência: os termos de uso da API da Ludopedia só permitem uso não-comercial (ver seção Ludopedia em V2), então essa escolha também define se a integração com a Ludopedia é viável como está ou se precisa de negociação direta com eles.
-- Backend de autenticação: Firebase Auth vs. backend próprio (C#/EF Core).
-- Regras específicas de LGPD para dados de partidas compartilhadas entre jogadores.
+- Regras específicas de LGPD para dados de partidas compartilhadas entre jogadores (fica mais urgente agora que existe conta de usuário de verdade, mesmo que só com Firebase Auth + backup).
