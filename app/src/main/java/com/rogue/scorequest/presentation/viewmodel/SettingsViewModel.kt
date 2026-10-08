@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rogue.scorequest.domain.model.ExportResult
 import com.rogue.scorequest.domain.usecase.ExportGamesUseCase
+import com.rogue.scorequest.domain.usecase.GetAuthStateUseCase
 import com.rogue.scorequest.domain.usecase.GetThemePreferenceUseCase
 import com.rogue.scorequest.domain.usecase.ImportSeedGamesUseCase
 import com.rogue.scorequest.domain.usecase.SetThemePreferenceUseCase
+import com.rogue.scorequest.domain.usecase.SignOutUseCase
 import com.rogue.scorequest.presentation.viewmodel.states.SettingsState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +19,9 @@ class SettingsViewModel(
     getThemePreference: GetThemePreferenceUseCase,
     private val setThemePreference: SetThemePreferenceUseCase,
     private val importSeedGames: ImportSeedGamesUseCase,
-    private val exportGames: ExportGamesUseCase
+    private val exportGames: ExportGamesUseCase,
+    getAuthState: GetAuthStateUseCase,
+    private val signOut: SignOutUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -28,6 +32,20 @@ class SettingsViewModel(
             getThemePreference().collect { isDark ->
                 _state.update { it.copy(isDarkTheme = isDark) }
             }
+        }
+        viewModelScope.launch {
+            getAuthState().collect { authUser ->
+                _state.update { it.copy(authUser = authUser) }
+            }
+        }
+    }
+
+    fun onSignOutClick() {
+        if (_state.value.isSigningOut) return
+        viewModelScope.launch {
+            _state.update { it.copy(isSigningOut = true) }
+            signOut()
+            _state.update { it.copy(isSigningOut = false) }
         }
     }
 

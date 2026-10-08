@@ -12,8 +12,8 @@
 
 App Android pessoal (nativo, Kotlin + Jetpack Compose) para histórico de jogatinas de jogos de tabuleiro: catálogo de jogos, estante pessoal, registro de partidas com pontuação, estatísticas e perfil.
 
-- Persistência **100% local** via Room (`scorequest.db`), sem contas de usuário nem sincronização em nuvem até o momento.
-- Escopo atual = **V1 completo** + o **Criador de Pontuação Personalizado** (nominalmente uma feature de V2), implementado por pedido explícito do usuário porque não depende de conta/nuvem — só do modelo de permissão "fase atual" (qualquer usuário edita, sem restrição).
+- Persistência **100% local** via Room (`scorequest.db`) como fonte da verdade — **login com Google é opcional** e serve só de backup/sincronização entre aparelhos (ver seção 9), não é necessário pra usar o app.
+- Escopo atual = **V1 completo** + o **Criador de Pontuação Personalizado** e a **Conta/sincronização com Firebase** (ambos nominalmente features de V2), implementados por pedido explícito do usuário — o resto do V2 (amigos, @username, feed social) continua no backlog.
 - Projeto scaffolded a partir do skill `android-compose-scaffold` (mesma stack/arquitetura do projeto `ShopControl`).
 
 ## 2. Identidade Visual (como implementada)
@@ -84,7 +84,7 @@ Mesmo padrão visual da Confirmação do wizard — resumo da partida + placar, 
 Avatar, bio, favoritos (editável, máx. 3), aba Atividades com lista paginada de todas as partidas.
 
 ### 5.9 Configurações
-Toggle de tema claro/escuro, **Importar JSON** e **Exportar JSON** do acervo de jogos (ver seção 6).
+Seção de conta (**Entrar com Google** / nome+e-mail da conta + **Sair**, ver seção 9), toggle de tema claro/escuro, **Importar JSON** e **Exportar JSON** do acervo de jogos (ver seção 6).
 
 ### 5.10 Jogadores e Grupos
 Aba "Jogadores" com 2 sub-abas: **Jogadores** (grid, criar/editar/excluir, detalhe com estatísticas individuais) e **Grupos** (conjuntos nomeados de 2+ jogadores, com estatísticas próprias filtradas pelas partidas daquele grupo). Ao registrar uma partida, o app reconcilia automaticamente a seleção de jogadores com grupos existentes (adota, sugere atualizar ou criar grupo novo).
@@ -99,10 +99,18 @@ Construtor visual (`GameScoreSchema` por jogo, um schema por jogo): tipo Simples
 
 O catálogo é populado hoje via **Importar/Exportar JSON** (não mais um seed pré-carregado hardcoded de 100-300 jogos como o doc original previa). Arquivo de referência: `Regras/Jogos iniciais.json` (20 jogos + 20 schemas de pontuação, um por jogo, cobrindo os principais padrões — SIMPLE, COMPOSITE/AUTOMATIC, COMPOSITE/MANUAL, COMPOSITE/NONE). Formato documentado em `Regras/Como montar o JSON de jogos.md`. Importar é idempotente (upsert por id).
 
-## 7. O que ainda não existe
+## 7. Conta e sincronização com Firebase
+
+Login com Google **opcional** (via Configurações) + backup/sincronização dos dados locais na nuvem (Firebase Auth + Firestore). O app continua funcionando 100% offline sem conta, exatamente como antes — conta é só um jeito de não perder/poder restaurar os dados em outro aparelho.
+
+- **Entrar**: Configurações → "Entrar com Google" → tela de login dedicada (Credential Manager). Ao logar com sucesso, os dados já presentes localmente no aparelho são automaticamente associados àquele usuário — se o aparelho já tinha jogos/jogadores, eles sobem pra nuvem; se estava vazio (ex.: depois de um logout), o backup existente da nuvem é baixado.
+- **Sair**: Configurações → "Sair" — desloga **e apaga todos os dados locais do aparelho** (catálogo, estante, jogadores, partidas, pontuações personalizadas), pra não misturar com o próximo usuário/conta que usar o mesmo aparelho.
+- Escopo: um usuário só tem uma "cópia na nuvem" de cada vez (sem múltiplos dispositivos editando a mesma conta simultaneamente, sem resolução de conflito). Sem recursos sociais (amigos, feed, @username) — isso continua no backlog de V2.
+
+## 8. O que ainda não existe
 
 - Onboarding de primeiro uso.
-- Qualquer conta de usuário, login ou sincronização em nuvem.
+- Recursos sociais de conta (amigos, @username, feed de atividades compartilhado).
 - Catálogo curado ainda não chegou na meta de 100-300 jogos (hoje são 20).
 
 Backlog completo em `Score_Quest_Planejamento.md`.

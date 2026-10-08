@@ -41,6 +41,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SettingsScreen(
     onBackClick: () -> Unit,
+    onLoginClick: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -100,6 +101,27 @@ fun SettingsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            val authUser = state.authUser
+            if (authUser != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(authUser.displayName ?: authUser.email ?: "Conta conectada")
+                    OutlinedButton(onClick = viewModel::onSignOutClick, enabled = !state.isSigningOut) {
+                        Text(if (state.isSigningOut) "Saindo..." else "Sair")
+                    }
+                }
+            } else {
+                OutlinedButton(
+                    onClick = onLoginClick,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Entrar com Google")
+                }
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,

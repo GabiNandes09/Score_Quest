@@ -13,6 +13,7 @@ import com.rogue.scorequest.presentation.viewmodel.GroupDetailViewModel
 import com.rogue.scorequest.presentation.viewmodel.HomeViewModel
 import com.rogue.scorequest.presentation.viewmodel.LiveMatchChooseGameViewModel
 import com.rogue.scorequest.presentation.viewmodel.LiveMatchViewModel
+import com.rogue.scorequest.presentation.viewmodel.LoginViewModel
 import com.rogue.scorequest.presentation.viewmodel.ManagePlayersViewModel
 import com.rogue.scorequest.presentation.viewmodel.PickNamesViewModel
 import com.rogue.scorequest.presentation.viewmodel.PlayerDetailViewModel
@@ -37,7 +38,8 @@ val viewModelModule = module {
     viewModel { (sessionId: String) -> SessionDetailViewModel(sessionId, get(), get(), get()) }
     viewModel { EditProfileViewModel(get(), get()) }
     viewModel { EditFavoritesViewModel(get(), get(), get()) }
-    viewModel { SettingsViewModel(get(), get(), get(), get()) }
+    viewModel { SettingsViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel { LoginViewModel(get()) }
     viewModel { ManagePlayersViewModel(get(), get()) }
     viewModel { (playerId: String) -> PlayerDetailViewModel(playerId, get(), get()) }
     viewModel { (playerId: String) -> AddEditPlayerViewModel(playerId, get(), get(), get(), get()) }

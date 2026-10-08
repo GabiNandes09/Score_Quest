@@ -58,6 +58,7 @@ import com.rogue.scorequest.presentation.screens.ProfileScreen
 import com.rogue.scorequest.presentation.screens.SessionDetailScreen
 import com.rogue.scorequest.presentation.screens.SettingsScreen
 import com.rogue.scorequest.presentation.screens.ToolsScreen
+import com.rogue.scorequest.presentation.screens.auth.LoginScreen
 import com.rogue.scorequest.presentation.screens.livematch.LiveMatchChooseGameScreen
 import com.rogue.scorequest.presentation.screens.livematch.LiveMatchScreen
 import com.rogue.scorequest.presentation.screens.scoreschema.ScoreSchemaBuilderScreen
@@ -215,7 +216,15 @@ fun AppNavigation() {
 
             composable(Routes.Settings.route) {
                 SettingsScreen(
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { navController.popBackStack() },
+                    onLoginClick = { navController.navigate(Routes.Login.route) }
+                )
+            }
+
+            composable(Routes.Login.route) {
+                LoginScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onSignedIn = { navController.popBackStack() }
                 )
             }
 

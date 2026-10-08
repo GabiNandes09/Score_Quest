@@ -8,6 +8,7 @@ sealed class Routes(
     data object Games : Routes("games")
     data object Profile : Routes("profile")
     data object Settings : Routes("settings")
+    data object Login : Routes("login")
 
     data object GameDetail : Routes("game_detail/{gameId}") {
         fun createRoute(gameId: String) = "game_detail/$gameId"

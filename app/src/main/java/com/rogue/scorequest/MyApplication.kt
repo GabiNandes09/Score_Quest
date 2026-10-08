@@ -3,6 +3,7 @@ package com.rogue.scorequest
 import android.app.Application
 import com.rogue.scorequest.di.appModule
 import com.rogue.scorequest.di.databaseModule
+import com.rogue.scorequest.di.firebaseModule
 import com.rogue.scorequest.di.networkModule
 import com.rogue.scorequest.di.preferencesModule
 import com.rogue.scorequest.di.viewModelModule
@@ -19,6 +20,7 @@ class MyApplication : Application() {
                 appModule,
                 networkModule,
                 databaseModule,
+                firebaseModule,
                 preferencesModule,
                 viewModelModule
             )

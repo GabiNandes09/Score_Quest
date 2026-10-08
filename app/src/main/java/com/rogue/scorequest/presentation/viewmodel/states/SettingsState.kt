@@ -1,5 +1,6 @@
 package com.rogue.scorequest.presentation.viewmodel.states
 
+import com.rogue.scorequest.domain.model.AuthUser
 import com.rogue.scorequest.domain.model.ExportResult
 import com.rogue.scorequest.domain.model.ImportResult
 
@@ -11,5 +12,7 @@ data class SettingsState(
     val isExporting: Boolean = false,
     val pendingExport: ExportResult? = null,
     val exportSuccessMessage: String? = null,
-    val exportError: String? = null
+    val exportError: String? = null,
+    val authUser: AuthUser? = null,
+    val isSigningOut: Boolean = false
 )
